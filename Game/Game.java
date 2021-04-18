@@ -34,7 +34,7 @@ public class Game {
 		setPlayers(players);
 		didBet = new ArrayList<Boolean>(inGame.size());
 		roundBets = new ArrayList<Double>(inGame.size());
-		this.logger.log("Game initialized");
+		this.logger.log("Success! 20004G: Game initialized");
 	}
 
 	public void setPlayers(ArrayList<Player> players) {
@@ -59,29 +59,6 @@ public class Game {
 	public ArrayList<Player> getPlayers() {
 		ArrayList<Player> inGameCopy = new ArrayList<Player>(inGame);
 		return inGameCopy;
-	}
-
-	// Button Holder rotates to left after every round
-	// Direction: left is represented by +1 therefore clockwise is positive
-	// Small blind: paid by person sitting directly left of the button holder
-	// Big blind: paid by person sitting directly left of the small blind. Big blind
-	// is usually 2*small blind amount
-	// In heads+up game (2 players only) the button holder plays small blind while
-	// the opponent plays big blind.
-	private static void setButtonBlind() {
-		if (inGame.size() == 2) {
-			smallBlindOffset = 0;
-			bigBlindOffset = 1;
-			bettingPlayer = 0; // first betting player
-		} else {
-			smallBlindOffset = 1;
-			bigBlindOffset = 2;
-			bettingPlayer = 3; // first betting player
-		}
-		buttonHolder = roundCounter % inGame.size();
-		smallBlind = (roundCounter + smallBlindOffset) % inGame.size();
-		bigBlind = (roundCounter + bigBlindOffset) % inGame.size();
-		bettingPlayer = (roundCounter + bettingPlayerOffset) % inGame.size();
 	}
 
 	public String getButtonBlind() {
@@ -109,25 +86,7 @@ public class Game {
 		}
 	}
 
-	boolean didAllPlayersBet() {
-		for (boolean b : didBet) {
-			if (!b) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	boolean isPotEven() { // do all players have the same amount in pot?
-		for (Double element : roundBets) {
-			if (!element.equals(roundBets.get(0))) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	void preFlopBet() { // players placing bets
+	public void preFlopBet() { // players placing bets
 		// Pre-Flop starting at player firstBet
 		int betCounter = 0; // order does not matter
 		int raiseCounter = 0; // maximum or 3 raises
@@ -199,8 +158,65 @@ public class Game {
 			}
 		}
 	}
+	
+	public boolean hasWinner() {
+		if (inGame.size() == 1 && pot > 0) {
+			return true;
+		}
+		return false;
+	}
 
-	static double getMax(double previousBet, int betCounter) {
+	public void resetGame() {
+		didBet.clear();
+		roundBets.clear();
+	}
+	
+	public double getPot() {
+		return this.pot;
+	}
+	
+	// Button Holder rotates to left after every round
+	// Direction: left is represented by +1 therefore clockwise is positive
+	// Small blind: paid by person sitting directly left of the button holder
+	// Big blind: paid by person sitting directly left of the small blind. Big blind
+	// is usually 2*small blind amount
+	// In heads+up game (2 players only) the button holder plays small blind while
+	// the opponent plays big blind.
+	private static void setButtonBlind() {
+		if (inGame.size() == 2) {
+			smallBlindOffset = 0;
+			bigBlindOffset = 1;
+			bettingPlayer = 0; // first betting player
+		} else {
+			smallBlindOffset = 1;
+			bigBlindOffset = 2;
+			bettingPlayer = 3; // first betting player
+		}
+		buttonHolder = roundCounter % inGame.size();
+		smallBlind = (roundCounter + smallBlindOffset) % inGame.size();
+		bigBlind = (roundCounter + bigBlindOffset) % inGame.size();
+		bettingPlayer = (roundCounter + bettingPlayerOffset) % inGame.size();
+	}	
+	
+	private boolean didAllPlayersBet() {
+		for (boolean b : didBet) {
+			if (!b) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isPotEven() { // do all players have the same amount in pot?
+		for (Double element : roundBets) {
+			if (!element.equals(roundBets.get(0))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static double getMax(double previousBet, int betCounter) {
 		double max; // find the max of Array and setting it to the bet amount - ORDER DOES NOT
 		// MATTER!
 		if (betCounter == 0) {
@@ -217,7 +233,7 @@ public class Game {
 		return max;
 	}
 
-	static boolean raise(int player, double previousBet, double raiseAmount) {
+	private static boolean raise(int player, double previousBet, double raiseAmount) {
 		if (raiseAmount <= bigBlindAmount) {
 			if (previousBet == 0 || raiseAmount >= previousBet) {
 				return true;
@@ -228,29 +244,13 @@ public class Game {
 		return false;
 	}
 
-	void addTransactionHistory(int player, String action, double amountChange, double pot) {
+	private void addTransactionHistory(int player, String action, double amountChange, double pot) {
 		gameTracking.add(new Transaction(inGame.get(player).getFirstName(), inGame.get(player).getLastName(), action,
 				amountChange, pot));
 	}
 
-	boolean hasWinner() {
-		if (inGame.size() == 1 && pot > 0) {
-			return true;
-		}
-		return false;
-	}
-
-	void resetGame() {
-		didBet.clear();
-		roundBets.clear();
-	}
-
-	void setPot(double change) {
+	private void setPot(double change) {
 		this.pot += change;
-	}
-
-	double getPot() {
-		return this.pot;
 	}
 
 	public String toString() {
