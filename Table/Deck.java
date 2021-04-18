@@ -32,7 +32,7 @@ public class Deck {
 			for (int i = deck.size() - 1; i > 0; i--) {
 				deck.remove(i);
 			}
-			this.logger.log("Sucess 20002D: Deck has been clear reset!");
+			this.logger.log("Sucess 20002D: Deck has been cleared!");
 	}
 
 	public String deal() {

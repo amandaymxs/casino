@@ -11,10 +11,10 @@ import Table.Deck;
 public class Game {
 	Logger logger = new Logger(true);
 	static ArrayList<Player> inGame;
-	static Deck deck = new Deck();
+	static Deck deck;
 	static ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
-	static ArrayList<Boolean> didBet;
-	static ArrayList<Double> roundBets; // order does not matter
+	static ArrayList<Boolean> didBet = new ArrayList<Boolean>();
+	static ArrayList<Double> roundBets = new ArrayList<Double>();; // order does not matter
 
 	static Scanner userInput = new Scanner(System.in);
 
@@ -29,20 +29,28 @@ public class Game {
 
 	// static ArrayList<Card> deckOfCards = new ArrayList<Card>();
 	// Welcome to Texas Holdem : Limited Holdem Edition.
+//	
+//	public Game() {
+//		deck = new Deck();
+//	}
 
 	public Game(ArrayList<Player> players) {
-		setPlayers(players);
-		didBet = new ArrayList<Boolean>(inGame.size());
-		roundBets = new ArrayList<Double>(inGame.size());
+		joinGame(players);
+		for (int index = 0; index < inGame.size(); index++) {
+			didBet.add(false);
+			roundBets.add(0.00);
+		}
+		deck = new Deck();
 		this.logger.log("Success! 20004G: Game initialized");
 	}
 
-	public void setPlayers(ArrayList<Player> players) {
+	public void joinGame(ArrayList<Player> players) {
 		if (isGameStart) {
 			System.err.println("Error 1001G: New players cannot enter the game once the game has started");
-		} else {
+		} else if (players.size() >= 2) {
 			// let inGame = same size as players
 			inGame = new ArrayList<Player>(players.size());
+			this.logger.log("Success! 20002T: " + players.size() + " players has been seated at the table!");
 			// Copy all the players at the table to a new arraylist
 			for (Player p : players) {
 				inGame.add(p);
@@ -53,6 +61,8 @@ public class Game {
 			// initialize counter to zero
 			isGameStart = true;
 			setButtonBlind();
+		} else {
+			System.err.println("Error 10003T: Player count must be between 2 and 12.");
 		}
 	}
 
@@ -78,10 +88,10 @@ public class Game {
 	}
 
 	public void dealCards() {
-		for (int i = 0; i < 2; i++) { 		// each player gets two cards
-		for (Player p : inGame) {
+		for (int i = 0; i < 2; i++) { // each player gets two cards
+			for (Player p : inGame) {
 				p.hand.addCard(deck.deal());
-				logger.log(p.hand.toString());
+				logger.log(p.getFirstName() + "'s hand: " + p.hand);
 			}
 		}
 	}
@@ -95,7 +105,7 @@ public class Game {
 
 		while (!didAllPlayersBet() || !isPotEven() || !hasWinner()) {
 			currentPlayer = bettingPlayer + betCounter % inGame.size();
-			System.out.println("Player " + currentPlayer + "'s turn to bet.");
+			logger.log("Player " + currentPlayer + ", " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
 			if (raiseCounter < 3) {
 				System.out.println(inGame.get(currentPlayer).getFirstName()
 						+ ", enter if you would like to call, raise, or fold.");
@@ -104,31 +114,34 @@ public class Game {
 						inGame.get(currentPlayer).getFirstName() + ", enter if you would like to call or fold.");
 			}
 			String response = userInput.nextLine();
-			if (response == "fold") {
+			if (response.equals("fold")) {
 				didBet.remove(currentPlayer);
 				roundBets.remove(currentPlayer);
+				addTransactionHistory(currentPlayer, "Fold", 0.00, this.pot);
 				inGame.remove(currentPlayer); // must be removed last
 				if (hasWinner()) {
 					// VERIFY FOLLOWING LINE
-					int winner = 0;
 					// set pot to client's account
+					System.out.println("Player " + inGame.get(0) + " is the winner! Congradulations "
+							+ inGame.get(0).getFirstName() + "!");
 					resetGame();
 					deck.clearDeck();
-					System.out.println("Congradulations " + inGame.get(winner).getFirstName() + ", Player "
-							+ inGame.get(winner) + " is the winner!");
 				}
-			} else if (response == "call") {
+			} else if (response.equals("call")) {
 				double callAmount = getMax(previousBet, betCounter); // find max on table to match
 				// deduct from user's account
 				inGame.get(currentPlayer).account.setBet(callAmount);
 				// add to pot
 				setPot(callAmount);
 				// send transaction to accounting
-				addTransactionHistory(currentPlayer, "Call", callAmount, getPot());
-
+				if (callAmount == 0) {
+					addTransactionHistory(currentPlayer, "Check", callAmount, getPot());
+				} else {
+					addTransactionHistory(currentPlayer, "Call", callAmount, getPot());
+				}
 				previousBet = callAmount;
 				betCounter++;
-			} else if (response == "raise") { // RAISE CANNOT BE GREATER THAN BIG BLIND IN LIMITED HOLDEM
+			} else if (response.equals("raise")) { // RAISE CANNOT BE GREATER THAN BIG BLIND IN LIMITED HOLDEM
 				System.out.println(
 						inGame.get(currentPlayer).getFirstName() + ", enter the amount you would like to raise");
 				double raise = (double) userInput.nextInt();
@@ -157,8 +170,9 @@ public class Game {
 				System.err.println("Error 1004G: Please enter a valid response.");
 			}
 		}
+
 	}
-	
+
 	public boolean hasWinner() {
 		if (inGame.size() == 1 && pot > 0) {
 			return true;
@@ -170,11 +184,11 @@ public class Game {
 		didBet.clear();
 		roundBets.clear();
 	}
-	
+
 	public double getPot() {
 		return this.pot;
 	}
-	
+
 	// Button Holder rotates to left after every round
 	// Direction: left is represented by +1 therefore clockwise is positive
 	// Small blind: paid by person sitting directly left of the button holder
@@ -196,8 +210,8 @@ public class Game {
 		smallBlind = (roundCounter + smallBlindOffset) % inGame.size();
 		bigBlind = (roundCounter + bigBlindOffset) % inGame.size();
 		bettingPlayer = (roundCounter + bettingPlayerOffset) % inGame.size();
-	}	
-	
+	}
+
 	private boolean didAllPlayersBet() {
 		for (boolean b : didBet) {
 			if (!b) {

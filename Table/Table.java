@@ -32,14 +32,9 @@ public class Table {
 		ArrayList<Player> isSeatedCopy = new ArrayList<Player>(isSeated);
 		return isSeatedCopy;
 	}
-
-	public void joinGame(ArrayList<Player> isSeated) {		//all players must join game at the same time
-		if (isSeated.size() >= 2) {
-			game = new Game(isSeated);
-			this.logger.log("Success! 20002T: " + getSeated() + " has been seated at the table!");
-		} else {
-			System.err.println("Error 10003T: Player count must be between 2 and 12.");
-		}
+	
+	public void startGame() {
+		game = new Game(isSeated);
 	}
 
 	public String toString() {

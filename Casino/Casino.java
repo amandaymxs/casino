@@ -19,12 +19,13 @@ public class Casino {
 		TexasHoldemTable.seat(inCasino.get(0));
 		TexasHoldemTable.seat(inCasino.get(1));
 
-		TexasHoldemTable.joinGame(TexasHoldemTable.getSeated());	//push everyone who's seating into the game
+		TexasHoldemTable.getSeated();
+		TexasHoldemTable.startGame();	//push everyone who's seating into the game
 		
 		TexasHoldemTable.game.getButtonBlind();
 		TexasHoldemTable.game.playForcedBets();
 		TexasHoldemTable.game.dealCards();
-		
+		TexasHoldemTable.game.preFlopBet();
 
 //		
 //		
