@@ -1,5 +1,6 @@
 package Game;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -10,6 +11,7 @@ import Table.Deck;
 
 public class Game {
 	Logger logger = new Logger(true);
+	DecimalFormat df = new DecimalFormat("#.00");
 	static ArrayList<Player> inGame;
 	static Deck deck;
 	static ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
@@ -76,7 +78,7 @@ public class Game {
 				+ smallBlind + ", and Big Blind is " + bigBlind + ".");
 	}
 
-	public void playForcedBets() {
+	public void collectForcedBets() {
 		inGame.get(smallBlind).account.setBet(smallBlindAmount);
 		setPot(smallBlindAmount);
 		gameTracking.add(new Transaction(inGame.get(smallBlind).getFirstName(), inGame.get(smallBlind).getLastName(),
@@ -100,10 +102,10 @@ public class Game {
 		// Pre-Flop starting at player firstBet
 		int betCounter = 0; // order does not matter
 		int raiseCounter = 0; // maximum or 3 raises
-		double previousBet = 0;
+		double previousBet = bigBlindAmount; // default is bigBlind
 		int currentPlayer;
 
-		while (!didAllPlayersBet() || !isPotEven() || !hasWinner()) {
+		while (!didAllPlayersBet() || !isPotEven()) {
 			currentPlayer = bettingPlayer + betCounter % inGame.size();
 			logger.log("Player " + currentPlayer + ", " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
 			if (raiseCounter < 3) {
@@ -130,42 +132,60 @@ public class Game {
 			} else if (response.equals("call")) {
 				double callAmount = getMax(previousBet, betCounter); // find max on table to match
 				// deduct from user's account
+				logger.log("call amount: " + callAmount);
+				logger.log("previousBet: " + previousBet);
 				inGame.get(currentPlayer).account.setBet(callAmount);
 				// add to pot
 				setPot(callAmount);
 				// send transaction to accounting
-				if (callAmount == 0) {
+				if (callAmount == 0 && raiseCounter == 0) { // if currentPlayer placed the big blind, then call amount
+															// will be $0
+					logger.log("Call Amount for Big Blind Player: " + roundBets.get(currentPlayer) + ".");
 					addTransactionHistory(currentPlayer, "Check", callAmount, getPot());
 				} else {
 					addTransactionHistory(currentPlayer, "Call", callAmount, getPot());
 				}
+				roundBets.set(currentPlayer, previousBet);
+				didBet.set(currentPlayer, true);
+				logger.log("previous bet: " + previousBet + ".");
+				logger.log("round bets arraylist: " + roundBets.toString() + ".");
+				logger.log("round bets arraylist: " + didBet.toString() + ".");
 				previousBet = callAmount;
 				betCounter++;
 			} else if (response.equals("raise")) { // RAISE CANNOT BE GREATER THAN BIG BLIND IN LIMITED HOLDEM
-				System.out.println(
-						inGame.get(currentPlayer).getFirstName() + ", enter the amount you would like to raise");
-				double raise = (double) userInput.nextInt();
-				if (raise(currentPlayer, previousBet, raise)) { // if raise input amount meets conditions,
-					// calculate the difference between what player has placed in pot already and
-					// how much they want to raise.
-					double playerBetDifference = getMax(previousBet, betCounter) + raise - roundBets.get(currentPlayer);// sum
-																														// what
-																														// the
-																														// player
-					// will have to put
-					// into pot
-					// deduct from user's account
-					inGame.get(currentPlayer).account.setBet(playerBetDifference);
-					// add to pot
-					setPot(playerBetDifference);
-					// send transaction to accounting
-					String action = "Raise by $" + raise;
-					addTransactionHistory(currentPlayer, action, playerBetDifference, getPot());
+				boolean wentToCatch = false;
+				do {
+					System.out.println(
+							inGame.get(currentPlayer).getFirstName() + ", enter the amount you would like to raise");
+					logger.log("previous bet: " + previousBet + ".");
+					if (userInput.hasNextInt()) {
+						double raise = (double) userInput.nextInt();
+						wentToCatch = true;
+						if (raise(raise, previousBet, raiseCounter)) { // if raise input amount meets conditions,
+							// calculate the difference between what player has placed in pot already and
+							// how much they want to raise.
+							double playerBetDifference = getMax(previousBet, betCounter) + raise
+									- roundBets.get(currentPlayer);
+							inGame.get(currentPlayer).account.setBet(playerBetDifference);
+							// add to pot
+							setPot(playerBetDifference);
+							// send transaction to accounting
+							String transactionString = df.format(Math.abs(raise));
+							String action = "Raise by $" + transactionString;
+							addTransactionHistory(currentPlayer, action, playerBetDifference, getPot());
 
-					previousBet = raise;
-					raiseCounter++;
-					betCounter++;
-				}
+							previousBet = raise;
+							raiseCounter++;
+							betCounter++;
+							userInput.nextLine();
+						}
+					} else {
+						userInput.nextLine();
+						System.err.println(
+								"Error 1004B: Raise must be greater the previous bet and less than or equal to big blind.");
+					}
+				} while (!wentToCatch);
+
 			} else { // error handle - or set default
 				System.err.println("Error 1004G: Please enter a valid response.");
 			}
@@ -175,8 +195,10 @@ public class Game {
 
 	public boolean hasWinner() {
 		if (inGame.size() == 1 && pot > 0) {
+			logger.log("has winner? : " + true);
 			return true;
 		}
+		logger.log("has winner? : " + false);
 		return false;
 	}
 
@@ -215,18 +237,22 @@ public class Game {
 	private boolean didAllPlayersBet() {
 		for (boolean b : didBet) {
 			if (!b) {
+				logger.log("Did all players bet? : " + false);
 				return false;
 			}
 		}
+		logger.log("Did all players bet? : " + true);
 		return true;
 	}
 
 	private boolean isPotEven() { // do all players have the same amount in pot?
 		for (Double element : roundBets) {
 			if (!element.equals(roundBets.get(0))) {
+				logger.log("Is Pot Even? : " + false);
 				return false;
 			}
 		}
+		logger.log("Is Pot Even? : " + true);
 		return true;
 	}
 
@@ -247,13 +273,11 @@ public class Game {
 		return max;
 	}
 
-	private static boolean raise(int player, double previousBet, double raiseAmount) {
-		if (raiseAmount <= bigBlindAmount) {
-			if (previousBet == 0 || raiseAmount >= previousBet) {
-				return true;
-			} else {
-				System.err.println("Error 1004B: Raise must be greater the previous bet and less than big blind.");
-			}
+	private static boolean raise(double raiseAmount, double previousBet, int raiseCounter) {
+		if (raiseCounter == 0 && raiseAmount <= bigBlindAmount) {
+			return true;
+		} else if (raiseAmount <= bigBlindAmount && raiseAmount > previousBet) {
+			return true;
 		}
 		return false;
 	}
