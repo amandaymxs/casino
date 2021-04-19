@@ -10,15 +10,15 @@ import Casino.Player;
 import Table.Deck;
 
 public class Game {
-	Logger logger = new Logger(true);
-	DecimalFormat df = new DecimalFormat("#.00");
+	private Logger logger = new Logger(true);
+	final DecimalFormat df = new DecimalFormat("#.00");
 	static ArrayList<Player> inGame;
 	static Deck deck;
 	static ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
 	static ArrayList<Boolean> didBet = new ArrayList<Boolean>();
 	static ArrayList<Double> roundBets = new ArrayList<Double>();; // order does not matter
 
-	static Scanner userInput = new Scanner(System.in);
+	static final Scanner userInput = new Scanner(System.in);
 
 	static int buttonHolder, smallBlind, bigBlind, bettingPlayer, buttonOffset, smallBlindOffset, bigBlindOffset,
 			bettingPlayerOffset, roundCounter;
@@ -80,10 +80,12 @@ public class Game {
 
 	public void collectForcedBets() {
 		inGame.get(smallBlind).account.setBet(smallBlindAmount);
+		roundBets.set(smallBlind,smallBlindAmount);
 		setPot(smallBlindAmount);
 		gameTracking.add(new Transaction(inGame.get(smallBlind).getFirstName(), inGame.get(smallBlind).getLastName(),
 				"Small Blind", smallBlindAmount, pot));
 		inGame.get(bigBlind).account.setBet(bigBlindAmount);
+		roundBets.set(bigBlind, bigBlindAmount);
 		setPot(bigBlindAmount);
 		gameTracking.add(new Transaction(inGame.get(bigBlind).getFirstName(), inGame.get(bigBlind).getLastName(),
 				"Big Blind", bigBlindAmount, pot));
@@ -102,12 +104,17 @@ public class Game {
 		// Pre-Flop starting at player firstBet
 		int betCounter = 0; // order does not matter
 		int raiseCounter = 0; // maximum or 3 raises
-		double previousBet = bigBlindAmount; // default is bigBlind
+		double previousRaise = 0; // default is bigBlind
 		int currentPlayer;
 
-		while (!didAllPlayersBet() || !isPotEven()) {
+		do {
 			currentPlayer = bettingPlayer + betCounter % inGame.size();
+			logger.log("bettingPlayer: " + bettingPlayer);
+			logger.log("betCounter: " + betCounter);
+			logger.log("currentPlayer " + currentPlayer);
+			
 			logger.log("Player " + currentPlayer + ", " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
+
 			if (raiseCounter < 3) {
 				System.out.println(inGame.get(currentPlayer).getFirstName()
 						+ ", enter if you would like to call, raise, or fold.");
@@ -115,8 +122,9 @@ public class Game {
 				System.out.println(
 						inGame.get(currentPlayer).getFirstName() + ", enter if you would like to call or fold.");
 			}
+			logger.log("Current round bets: " + roundBets.toString());
 			String response = userInput.nextLine();
-			if (response.equals("fold")) {
+			if (response.equalsIgnoreCase("fold")) {
 				didBet.remove(currentPlayer);
 				roundBets.remove(currentPlayer);
 				addTransactionHistory(currentPlayer, "Fold", 0.00, this.pot);
@@ -129,86 +137,60 @@ public class Game {
 					resetGame();
 					deck.clearDeck();
 				}
-			} else if (response.equals("call")) {
-				double callAmount = getMax(previousBet, betCounter); // find max on table to match
-				// deduct from user's account
-				logger.log("call amount: " + callAmount);
-				logger.log("previousBet: " + previousBet);
-				inGame.get(currentPlayer).account.setBet(callAmount);
-				// add to pot
-				setPot(callAmount);
-				// send transaction to accounting
-				if (callAmount == 0 && raiseCounter == 0) { // if currentPlayer placed the big blind, then call amount
-															// will be $0
-					logger.log("Call Amount for Big Blind Player: " + roundBets.get(currentPlayer) + ".");
-					addTransactionHistory(currentPlayer, "Check", callAmount, getPot());
+				userInput.nextLine();
+			} else if (response.equalsIgnoreCase("call")) {
+				double callAmount = roundBets.get((currentPlayer + inGame.size() - 1) % inGame.size()) - roundBets.get(currentPlayer);
+				if ( callAmount == 0.00) {
+					addTransactionHistory(currentPlayer, "Check", 0.00, this.pot);
 				} else {
-					addTransactionHistory(currentPlayer, "Call", callAmount, getPot());
+					// deduct player's account
+					inGame.get(currentPlayer).account.setBet(callAmount);
+					// add amount to pot
+					double getRoundBets = roundBets.get(currentPlayer) + callAmount;
+					roundBets.set(currentPlayer, getRoundBets);
+					this.pot += callAmount;
+					// add to game transaction history
+					addTransactionHistory(currentPlayer, "Call", callAmount, this.pot);
 				}
-				roundBets.set(currentPlayer, previousBet);
-				didBet.set(currentPlayer, true);
-				logger.log("previous bet: " + previousBet + ".");
-				logger.log("round bets arraylist: " + roundBets.toString() + ".");
-				logger.log("round bets arraylist: " + didBet.toString() + ".");
-				previousBet = callAmount;
 				betCounter++;
-			} else if (response.equals("raise")) { // RAISE CANNOT BE GREATER THAN BIG BLIND IN LIMITED HOLDEM
-				boolean wentToCatch = false;
+				didBet.set(currentPlayer, true);
+				userInput.nextLine();
+			} else if (response.equalsIgnoreCase("raise")) {
+				boolean caught = false;
+				double raise;
 				do {
-					System.out.println(
-							inGame.get(currentPlayer).getFirstName() + ", enter the amount you would like to raise");
-					logger.log("previous bet: " + previousBet + ".");
+					System.out.println("Enter raise amount.");
+					logger.log("Previous raise: " + previousRaise);
 					if (userInput.hasNextInt()) {
-						double raise = (double) userInput.nextInt();
-						wentToCatch = true;
-						if (raise(raise, previousBet, raiseCounter)) { // if raise input amount meets conditions,
-							// calculate the difference between what player has placed in pot already and
-							// how much they want to raise.
-							double playerBetDifference = getMax(previousBet, betCounter) + raise
+						raise = userInput.nextInt();
+						if (raise <= bigBlindAmount && raise >= previousRaise) {
+							caught = true;
+							// deduct player's account
+							double addToPot = roundBets.get(currentPlayer + inGame.size() - 1 % inGame.size()) + raise
 									- roundBets.get(currentPlayer);
-							inGame.get(currentPlayer).account.setBet(playerBetDifference);
-							// add to pot
-							setPot(playerBetDifference);
-							// send transaction to accounting
-							String transactionString = df.format(Math.abs(raise));
-							String action = "Raise by $" + transactionString;
-							addTransactionHistory(currentPlayer, action, playerBetDifference, getPot());
-
-							previousBet = raise;
-							raiseCounter++;
+							inGame.get(currentPlayer).account.setBet(addToPot);
+							// add amount to pot
+							roundBets.set(currentPlayer, roundBets.get(currentPlayer + inGame.size() - 1 % inGame.size()) + raise);
+							this.pot += addToPot;
+							// add to game transaction history
+							String action = "Raised by $ " + df.format(raise);
+							addTransactionHistory(currentPlayer, action, addToPot, this.pot);
+							previousRaise = raise;
 							betCounter++;
-							userInput.nextLine();
+							didBet.set(currentPlayer, true);
 						}
+						userInput.nextLine();
 					} else {
 						userInput.nextLine();
-						System.err.println(
-								"Error 1004B: Raise must be greater the previous bet and less than or equal to big blind.");
+						System.out.println("Enter a valid raise amount");
 					}
-				} while (!wentToCatch);
-
+				} while (!caught);
 			} else { // error handle - or set default
+				userInput.nextLine();
 				System.err.println("Error 1004G: Please enter a valid response.");
 			}
-		}
-
-	}
-
-	public boolean hasWinner() {
-		if (inGame.size() == 1 && pot > 0) {
-			logger.log("has winner? : " + true);
-			return true;
-		}
-		logger.log("has winner? : " + false);
-		return false;
-	}
-
-	public void resetGame() {
-		didBet.clear();
-		roundBets.clear();
-	}
-
-	public double getPot() {
-		return this.pot;
+		} while (!didAllPlayersBet() || !isPotEven());
+		betCounter++;
 	}
 
 	// Button Holder rotates to left after every round
@@ -256,39 +238,31 @@ public class Game {
 		return true;
 	}
 
-	private static double getMax(double previousBet, int betCounter) {
-		double max; // find the max of Array and setting it to the bet amount - ORDER DOES NOT
-		// MATTER!
-		if (betCounter == 0) {
-			max = bigBlindAmount;
-			previousBet = max;
-		} else {
-			max = roundBets.get(0);
-			for (int index = 1; index < roundBets.size() - 1; index++) {
-				if (roundBets.get(index) > max) {
-					max = roundBets.get(index);
-				}
-			}
-		}
-		return max;
-	}
-
-	private static boolean raise(double raiseAmount, double previousBet, int raiseCounter) {
-		if (raiseCounter == 0 && raiseAmount <= bigBlindAmount) {
-			return true;
-		} else if (raiseAmount <= bigBlindAmount && raiseAmount > previousBet) {
-			return true;
-		}
-		return false;
-	}
-
 	private void addTransactionHistory(int player, String action, double amountChange, double pot) {
 		gameTracking.add(new Transaction(inGame.get(player).getFirstName(), inGame.get(player).getLastName(), action,
 				amountChange, pot));
 	}
 
+	public boolean hasWinner() {
+		if (inGame.size() == 1 && pot > 0) {
+			logger.log("has winner? : " + true);
+			return true;
+		}
+		logger.log("has winner? : " + false);
+		return false;
+	}
+
+	public void resetGame() {
+		didBet.clear();
+		roundBets.clear();
+	}
+
 	private void setPot(double change) {
 		this.pot += change;
+	}
+
+	public double getPot() {
+		return this.pot;
 	}
 
 	public String toString() {
