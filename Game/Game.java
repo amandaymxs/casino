@@ -20,8 +20,8 @@ public class Game {
 
 	static final Scanner userInput = new Scanner(System.in);
 
-	static int buttonHolder, smallBlind, bigBlind, bettingPlayer, buttonOffset, smallBlindOffset, bigBlindOffset,
-			bettingPlayerOffset, roundCounter;
+	static int buttonHolder, smallBlind, bigBlind, firstBettingPlayer, buttonOffset, smallBlindOffset, bigBlindOffset,
+			bettingPlayerOffset, gameCounter;
 
 	double pot;
 	static double smallBlindAmount = 2.00;
@@ -59,7 +59,7 @@ public class Game {
 				p.setStatus(true);
 			}
 
-			gameTracking.add(new Transaction("New Round", roundCounter, 0.00, 0.00)); // (action, round, change, pot)
+			gameTracking.add(new Transaction("New Round", gameCounter, 0.00, 0.00)); // (action, round, change, pot)
 			// initialize counter to zero
 			isGameStart = true;
 			setButtonBlind();
@@ -74,7 +74,7 @@ public class Game {
 	}
 
 	public String getButtonBlind() {
-		return ("Round " + roundCounter + ": Button Holder is Player " + buttonHolder + ", Small Blind is Player "
+		return ("Round " + gameCounter + ": Button Holder is Player " + buttonHolder + ", Small Blind is Player "
 				+ smallBlind + ", and Big Blind is " + bigBlind + ".");
 	}
 
@@ -100,21 +100,15 @@ public class Game {
 		}
 	}
 
-	public void preFlopBet() { // players placing bets
-		// Pre-Flop starting at player firstBet
+	public void bettingRound() { // players placing bets
 		int betCounter = 0; // order does not matter
 		int raiseCounter = 0; // maximum or 3 raises
 		double previousRaise = 0; // default is bigBlind
-		int currentPlayer;
 
 		do {
-			currentPlayer = bettingPlayer + betCounter % inGame.size();
-			logger.log("bettingPlayer: " + bettingPlayer);
-			logger.log("betCounter: " + betCounter);
-			logger.log("currentPlayer " + currentPlayer);
-
+			int currentPlayer = firstBettingPlayer + betCounter % inGame.size();
 			logger.log("Player " + currentPlayer + ", " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
-
+			logger.log("raise counter: " + raiseCounter);
 			if (raiseCounter < 3) {
 				System.out.println(inGame.get(currentPlayer).getFirstName()
 						+ ", enter if you would like to call, raise, or fold.");
@@ -155,7 +149,7 @@ public class Game {
 				}
 				betCounter++;
 				didBet.set(currentPlayer, true);
-			} else if (response.equalsIgnoreCase("raise")) {
+			} else if (response.equalsIgnoreCase("raise") && raiseCounter < 3) {
 				boolean caught = false;
 				double raise;
 				do {
@@ -178,6 +172,7 @@ public class Game {
 							addTransactionHistory(currentPlayer, action, addToPot, this.pot);
 							previousRaise = raise;
 							betCounter++;
+							raiseCounter++;
 							didBet.set(currentPlayer, true);
 							userInput.nextLine();
 						}
@@ -192,6 +187,9 @@ public class Game {
 			}
 		} while (!didAllPlayersBet() || !isPotEven());
 		betCounter++;
+		raiseCounter = 0;
+		previousRaise = 0;
+		bettingPlayerOffset++;	//next round the first betting player is 
 	}
 
 	// Button Holder rotates to left after every round
@@ -205,16 +203,17 @@ public class Game {
 		if (inGame.size() == 2) {
 			smallBlindOffset = 0;
 			bigBlindOffset = 1;
-			bettingPlayer = 0; // first betting player
+			firstBettingPlayer = 0; // first betting player
 		} else {
 			smallBlindOffset = 1;
 			bigBlindOffset = 2;
-			bettingPlayer = 3; // first betting player
+			firstBettingPlayer = 3; // first betting player
+			bettingPlayerOffset = 0;	//pre-flop betting will be 0 offset, increment after every BETTING round
 		}
-		buttonHolder = roundCounter % inGame.size();
-		smallBlind = (roundCounter + smallBlindOffset) % inGame.size();
-		bigBlind = (roundCounter + bigBlindOffset) % inGame.size();
-		bettingPlayer = (roundCounter + bettingPlayerOffset) % inGame.size();
+		buttonHolder = gameCounter % inGame.size();
+		smallBlind = (gameCounter + smallBlindOffset) % inGame.size();
+		bigBlind = (gameCounter + bigBlindOffset) % inGame.size();
+		firstBettingPlayer = (gameCounter + bettingPlayerOffset) % inGame.size();
 	}
 
 	private boolean didAllPlayersBet() {
