@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import Casino.Logger;
 
 public class Deck {
-	Logger logger = new Logger(true);
+	Logger logger = new Logger(false);
 	private enum suit { S, H, D, C };
 	private static String[] rank = { "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K" };
 	private static ArrayList<String> deck = new ArrayList<String>(); // deck of cards

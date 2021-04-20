@@ -7,7 +7,6 @@ import java.text.DecimalFormat;
 
 public class Account {
 	private Logger logger = new Logger(false);
-
 	DecimalFormat df = new DecimalFormat("#.00");
 	ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 	String action;

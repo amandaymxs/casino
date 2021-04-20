@@ -12,18 +12,21 @@ public class Casino {
 
 		inCasino.add(new Player("Charlotte", "Mann"));
 		inCasino.add(new Player("Liam", "Lee"));
+		inCasino.add(new Player("Olivia", "Wong"));
 
 		inCasino.get(0).account.loadAccount(100.00);
 		inCasino.get(1).account.loadAccount(80);
+		inCasino.get(2).account.loadAccount(110);
 
 		TexasHoldemTable.seat(inCasino.get(0));
 		TexasHoldemTable.seat(inCasino.get(1));
+		TexasHoldemTable.seat(inCasino.get(2));
 
 		TexasHoldemTable.getSeated();
 		TexasHoldemTable.startGame();	//push everyone who's seating into the game
 		
 		TexasHoldemTable.game.getButtonBlind();
-		TexasHoldemTable.game.playForcedBets();
+		TexasHoldemTable.game.collectForcedBets();
 		TexasHoldemTable.game.dealCards();
 		TexasHoldemTable.game.preFlopBet();
 

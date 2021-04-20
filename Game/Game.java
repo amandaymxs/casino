@@ -80,7 +80,7 @@ public class Game {
 
 	public void collectForcedBets() {
 		inGame.get(smallBlind).account.setBet(smallBlindAmount);
-		roundBets.set(smallBlind,smallBlindAmount);
+		roundBets.set(smallBlind, smallBlindAmount);
 		setPot(smallBlindAmount);
 		gameTracking.add(new Transaction(inGame.get(smallBlind).getFirstName(), inGame.get(smallBlind).getLastName(),
 				"Small Blind", smallBlindAmount, pot));
@@ -112,7 +112,7 @@ public class Game {
 			logger.log("bettingPlayer: " + bettingPlayer);
 			logger.log("betCounter: " + betCounter);
 			logger.log("currentPlayer " + currentPlayer);
-			
+
 			logger.log("Player " + currentPlayer + ", " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
 
 			if (raiseCounter < 3) {
@@ -129,6 +129,7 @@ public class Game {
 				roundBets.remove(currentPlayer);
 				addTransactionHistory(currentPlayer, "Fold", 0.00, this.pot);
 				inGame.remove(currentPlayer); // must be removed last
+//				logger.log(inGame.toString());
 				if (hasWinner()) {
 					// VERIFY FOLLOWING LINE
 					// set pot to client's account
@@ -137,10 +138,10 @@ public class Game {
 					resetGame();
 					deck.clearDeck();
 				}
-				userInput.nextLine();
 			} else if (response.equalsIgnoreCase("call")) {
-				double callAmount = roundBets.get((currentPlayer + inGame.size() - 1) % inGame.size()) - roundBets.get(currentPlayer);
-				if ( callAmount == 0.00) {
+				double callAmount = roundBets.get((currentPlayer + inGame.size() - 1) % inGame.size())
+						- roundBets.get(currentPlayer);
+				if (callAmount == 0.00) {
 					addTransactionHistory(currentPlayer, "Check", 0.00, this.pot);
 				} else {
 					// deduct player's account
@@ -154,7 +155,6 @@ public class Game {
 				}
 				betCounter++;
 				didBet.set(currentPlayer, true);
-				userInput.nextLine();
 			} else if (response.equalsIgnoreCase("raise")) {
 				boolean caught = false;
 				double raise;
@@ -166,11 +166,12 @@ public class Game {
 						if (raise <= bigBlindAmount && raise >= previousRaise) {
 							caught = true;
 							// deduct player's account
-							double addToPot = roundBets.get(currentPlayer + inGame.size() - 1 % inGame.size()) + raise
-									- roundBets.get(currentPlayer);
+							double addToPot = roundBets.get((currentPlayer + inGame.size() - 1) % inGame.size())
+									- roundBets.get(currentPlayer) + raise;
 							inGame.get(currentPlayer).account.setBet(addToPot);
 							// add amount to pot
-							roundBets.set(currentPlayer, roundBets.get(currentPlayer + inGame.size() - 1 % inGame.size()) + raise);
+							roundBets.set(currentPlayer,
+									roundBets.get((currentPlayer + inGame.size() - 1) % inGame.size()) + raise);
 							this.pot += addToPot;
 							// add to game transaction history
 							String action = "Raised by $ " + df.format(raise);
@@ -178,11 +179,11 @@ public class Game {
 							previousRaise = raise;
 							betCounter++;
 							didBet.set(currentPlayer, true);
+							userInput.nextLine();
 						}
-						userInput.nextLine();
 					} else {
 						userInput.nextLine();
-						System.out.println("Enter a valid raise amount");
+						System.out.println("Error 10006G: Try again. Enter a valid raise amount");
 					}
 				} while (!caught);
 			} else { // error handle - or set default
