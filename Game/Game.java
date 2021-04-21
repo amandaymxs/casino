@@ -16,7 +16,7 @@ public class Game {
 	static final Scanner userInput = new Scanner(System.in);
 	
 	static GameState gameState = new GameState();
-	static RoundState roundState;
+	static RoundState r;
 	
 	static ArrayList<Player> inGame = new ArrayList<Player>();
 	private static ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
@@ -36,7 +36,7 @@ public class Game {
 
 	public Game(ArrayList<Player> players) {
 		joinGame(players);
-		roundState = new RoundState(players.size());
+		r = new RoundState(players.size());
 		deck = new Deck();
 		this.logger.log("Success! 20004G: Game initialized");
 	}
@@ -62,11 +62,11 @@ public class Game {
 	
 	public void startGame() {
 		gameState.setIsGameStarted();
-		gameTracking.add(new Transaction("New Round", roundState.getRoundCounter(), 0.00, 0.00));
-		roundState.setButtonBlinds(inGame.size(), gameState.getGameCounter());
+		gameTracking.add(new Transaction("New Round", r.getRoundCounter(), 0.00, 0.00));
+		r.setButtonBlinds(inGame.size(), gameState.getGameCounter());
 		System.out.println("Blinds will be withdrawn from small blind and big blind accounts:");
-		collectForcedBets(roundState.getSmallBlind(), smallBlindAmount, "Small Blind");
-		collectForcedBets(roundState.getBigBlind(), bigBlindAmount, "Big Blind");
+		collectForcedBets(r.getSmallBlind(), smallBlindAmount, "Small Blind");
+		collectForcedBets(r.getBigBlind(), bigBlindAmount, "Big Blind");
 	}
 
 	public ArrayList<Player> getPlayers() {
@@ -75,13 +75,13 @@ public class Game {
 	}
 
 	public String getButtonBlind() {
-		return ("Round " + roundState.getRoundCounter() + ": B	utton Holder is Player " + roundState.getButtonHolder() + ", Small Blind is Player "
-				+ roundState.getSmallBlind() + ", and Big Blind is " + roundState.getBigBlind() + ".");
+		return ("Round " + r.getRoundCounter() + ": B	utton Holder is Player " + r.getButtonHolder() + ", Small Blind is Player "
+				+ r.getSmallBlind() + ", and Big Blind is " + r.getBigBlind() + ".");
 	}
 
 	private void collectForcedBets(int blind, double amount, String description) {
 		inGame.get(blind).account.setWithdrawal(amount);
-		roundState.setRoundBet(blind, amount);
+		r.setRoundBet(blind, amount);
 		this.logger.logFormat(String.format("%-15s %-15s %-20s %7.2f \n", inGame.get(blind).getFirstName(),
 				inGame.get(blind).getLastName(), description, amount));
 		setPot(blind);
@@ -102,25 +102,25 @@ public class Game {
 		int currentPlayer;
 		do {
 			currentPlayer = getCurrentPlayer();
-			logger.log("round counter: " + roundState.getRoundCounter());
+			logger.log("round counter: " + r.getRoundCounter());
 			logger.log("It's " + inGame.get(currentPlayer).getFirstName() + "'s turn to bet.");
-			if (roundState.getBetCounter() == 0 && roundState.getRaiseCounter() < 3) {
+			if (r.getBetCounter() == 0 && r.getRaiseCounter() < 3) {
 				System.out.println(inGame.get(currentPlayer).getFirstName()
 						+ ", enter if you would like to call, raise, or fold.");
-			}  else if (roundState.getRoundCounter() > 0 && roundState.getBetCounter() == 0){
+			}  else if (r.getRoundCounter() > 0 && r.getBetCounter() == 0){
 				System.out.println(inGame.get(currentPlayer).getFirstName()
 						+ ", enter if you would like to check, bet, or fold.");
 			} else {
 				System.out.println(
 						inGame.get(currentPlayer).getFirstName() + ", enter if you would like to call or fold.");
 			}
-			logger.log("Current round bets: " + roundState.getRoundBets());
+			logger.log("Current round bets: " + r.getRoundBets());
 			String response = userInput.nextLine();
 			if (response.equalsIgnoreCase("fold")) {
 				logger.log("There are " + getNumberPlayers() + " of players in the game before fold.");
 				playerFold(currentPlayer);
 				logger.log("There are " + getNumberPlayers() + " of players in the game after fold.");
-				if (roundState.hasOneWinner(this.pot)) {
+				if (r.hasOneWinner(this.pot)) {
 					System.out.println("Player " + inGame.get(0) + " is the winner! Congradulations "
 							+ inGame.get(0).getFirstName() + "!");
 					// withdraw pot balance
@@ -132,17 +132,17 @@ public class Game {
 				}
 			} else if (response.equalsIgnoreCase("call") || response.equalsIgnoreCase("check")) {
 				playerCall(currentPlayer);
-			} else if ((response.equalsIgnoreCase("bet") || response.equalsIgnoreCase("raise")) && raiseCounter < 3) {
+			} else if ((response.equalsIgnoreCase("bet") || response.equalsIgnoreCase("raise")) && r.getRaiseCounter() < 3) {
 				playerBet(currentPlayer);
 			} else { // error handle - or set default
 				userInput.nextLine();
 				System.err.println("Error 1004G: Please enter a valid response.");
 			}
-		} while (!roundState.didAllPlayersBet() || !roundState.isPotEven());
-		roundState.clearRaiseCounter();
+		} while (!r.didAllPlayersBet() || !r.isPotEven());
+		r.clearRaiseCounter();
 		previousRaise = 0;
 //		bettingPlayerOffset++; // next round the first betting player is
-		if (roundState.getRoundCounter() == 5 && !roundState.hasOneWinner(this.pot)) {
+		if (r.getRoundCounter() == 5 && !r.hasOneWinner(this.pot)) {
 			// evaluate cards
 			logger.log("End of Round. Who is the winner?");
 			resetGame();
@@ -189,36 +189,36 @@ public class Game {
 	}
 	
 	private void playerFold(int player) {
-		roundState.removeBets(player);
+		r.removeBets(player);
 		addTransactionHistory(player, "Fold", 0.00, this.pot);
 		inGame.get(player).setStatus();
 		inGame.remove(player); // must be removed last
 	}
 	
 	private void playerCall(int player) {
-		double callAmount = roundBets.get((player + inGame.size() - 1) % inGame.size())
-				- roundBets.get(player);
+		double callAmount = r.getRoundBet((player + inGame.size() - 1) % inGame.size())
+				- r.getRoundBet(player);
 		if (callAmount == 0.00) {
 			addTransactionHistory(player, "Check", 0.00, this.pot);
 		} else {
 			// deduct player's account
 			inGame.get(player).account.setWithdrawal(callAmount);
 			// add amount to pot
-			double getRoundBets = roundBets.get(player) + callAmount;
-			roundBets.set(player, getRoundBets);
+			double getRoundBets = r.getRoundBet(player) + callAmount;
+			r.setRoundBet(player, getRoundBets);
 			this.pot += callAmount;
 			// add to game transaction history
 			addTransactionHistory(player, "Call", callAmount, this.pot);
 		}
-		betCounter++;
-		didBet.set(player, true);
+		r.setBetCounter();
+		r.setDidBet(player);
 	}
 
 	private void playerBet(int player){
 		boolean caught = false;
 		double raise;
 		double minimumBet;
-		if(roundCounter <=1) {
+		if(r.getRoundCounter() <=1) {
 			minimumBet = bigBlindAmount;
 		} else {
 			minimumBet = 2*bigBlindAmount;
@@ -228,22 +228,22 @@ public class Game {
 			logger.log("Previous raise: " + previousRaise);
 			if (userInput.hasNextInt()) {
 				raise = userInput.nextInt();
-				if (roundState.getRoundCounter() <= 1 && raise <= minimumBet && raise >= previousRaise) {
+				if (r.getRoundCounter() <= 1 && raise <= minimumBet && raise >= previousRaise) {
 					caught = true;
 					// deduct player's account
-					double addToPot = roundState.getRoundBet((player + inGame.size() - 1) % inGame.size())
-							- roundState.getRoundBet(player) + raise;
+					double addToPot = r.getRoundBet((player + inGame.size() - 1) % inGame.size())
+							- r.getRoundBet(player) + raise;
 					inGame.get(player).account.setWithdrawal(addToPot);
 					// add amount to pot
-					roundState.setRoundBet(player, roundState.getRoundBet((player + inGame.size() - 1) % inGame.size()) + raise);
+					r.setRoundBet(player, r.getRoundBet((player + inGame.size() - 1) % inGame.size()) + raise);
 					this.pot += addToPot;
 					// add to game transaction history
 					String action = "Raised by $ " + df.format(raise);
 					addTransactionHistory(player, action, addToPot, this.pot);
 					previousRaise = raise;
-					roundState.setBetCounter();
-					roundState.setRaiseCounter();
-					roundState.setDidBet(player);
+					r.setBetCounter();
+					r.setRaiseCounter();
+					r.setDidBet(player);
 					userInput.nextLine();
 				}
 			} else {
@@ -266,7 +266,7 @@ public class Game {
 		}
 		communityCounter = 0;	//reset community cards counter to 0
 //		bettingPlayerOffset++; // next round the first betting player is ++
-		roundState.clearBetCounter();
+		r.clearBetCounter();
 	}
 
 	private void setPot(double change) {
