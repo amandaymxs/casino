@@ -1,6 +1,7 @@
 package Game;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import Casino.Logger;
 //import Casino.Player;
@@ -87,6 +88,10 @@ public class RoundState {
 		this.betCounter++;
 	}
 	
+	void clearBetCounter() {
+		this.betCounter = 0;
+	}
+	
 	int getBetCounter() {
 		return this.betCounter;
 	}
@@ -99,12 +104,24 @@ public class RoundState {
 		return this.raiseCounter;
 	}
 	
+	void clearRaiseCounter() {
+		this.raiseCounter = 0;
+	}
+	
 	void setDidBet(int index) {
 		didBets.set(index, !didBets.get(index));
 	}
 	
 	void setRoundBet(int index, double amount) {
 		roundBets.set(index, amount);
+	}
+	
+	double getRoundBet(int player) {
+		return roundBets.get(player);	//do i need to copy array to return deep copy of element?
+	}
+	
+	String getRoundBets() {
+		return Arrays.toString(roundBets.toArray());
 	}
 	
 	void removeBets(int player) {
@@ -128,7 +145,7 @@ public class RoundState {
 		return true;
 	}
 	
-	private boolean isPotEven() { // do all players have the same amount in pot?
+	boolean isPotEven() { // do all players have the same amount in pot?
 		for (Double element : roundBets) {
 			if (!element.equals(roundBets.get(0))) {
 				logger.log("Is Pot Even? : " + false);
@@ -139,8 +156,8 @@ public class RoundState {
 		return true;
 	}
 	
-	boolean hasOneWinner(int sizePlayers, double pot) {
-		if (sizePlayers == 1 && pot > 0) {
+	boolean hasOneWinner(double pot) {
+		if (didBets.size() == 1 && pot > 0) {
 			logger.log("has winner? : " + true);
 			return true;
 		}
