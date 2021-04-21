@@ -26,11 +26,10 @@ public class Casino {
 		TexasHoldemTable.startGame();	//push everyone who's seating into the game
 		
 		TexasHoldemTable.game.getButtonBlind();
-		TexasHoldemTable.game.collectForcedBets();
 		TexasHoldemTable.game.dealCards();
-		TexasHoldemTable.game.preFlopBet();
-
-//		
+		TexasHoldemTable.game.bettingRound();	//pre-flop betting
+		TexasHoldemTable.game.dealBoard();	//flop
+		TexasHoldemTable.game.bettingRound();	//flop betting
 //		
 //		System.out.println(TexasHoldemTable);
 //		System.out.println(TexasHoldemTable.game);

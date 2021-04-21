@@ -11,8 +11,8 @@ public class Account {
 	ArrayList<Transaction> transactions = new ArrayList<Transaction>();
 	String action;
 
-	private double buyIn = 0; // last buyIn,
-	private double bet = 0; // last bet played
+	private double deposit = 0; // last deposit,
+	private double withdrawal = 0; // last withdrawal played
 	private double balance = 0;
 
 	public Account(String newAccount) {
@@ -23,40 +23,40 @@ public class Account {
 		loadAccount(amount);
 	}
 
-	public void loadAccount(double buyIn) {
-		if (buyIn < 40 || buyIn > 200) {
-			System.err.println("Error A1001: Buy-in amount $" + buyIn
-					+ "is exceeds range allowed. Please enter a buy in between $40 and $200");
+	public void loadAccount(double deposit) {
+		if (deposit < 40 || deposit > 200) {
+			System.err.println("Error A1001: Buy-in amount $" + deposit
+					+ "is exceeds range allowed. Please enter a buy in withdrawalween $40 and $200");
 			throw new IllegalArgumentException();
 		} else {
-			this.buyIn = buyIn; // saves new buy-in replaces last buy-in
-			logger.log("Success! 20001A: Deposit of " + buyIn + " has been added to the account!");
-			setBalance(this.buyIn);
+			this.deposit = deposit; // saves new buy-in replaces last buy-in
+			logger.log("Success! 20001A: Deposit of " + deposit + " has been added to the account!");
+			setBalance(this.deposit);
 		}
 	}
 
 	public double getLastLoad() {
-		return this.buyIn; // returns the last buy-in player made
+		return this.deposit; // returns the last buy-in player made
 	}
 
-	public void setBet(double bet) {
-		if (bet > 4.00 * 4) { // maximum of three raises per round where $4 is the big blind already in the
+	public void setWithdrawal(double withdrawal) {
+		if (withdrawal > 4.00 * 4) { // maximum of three raises per round where $4 is the big blind already in the
 								// pot therefore $4 + ($4 * 3 raises)
 			System.err.println(
-					"Error A1002: Bet amount of $" + bet + " invalid, bet must be in increments of $8 (big blind)");
+					"Error A1002: Withdrawal amount of $" + withdrawal + " invalid, withdrawal must be in increments of $8 (big blind)");
 			throw new IllegalArgumentException();
-		} else if (bet > this.balance) {
+		} else if (withdrawal > this.balance) {
 			System.err.println("Error A1003: Insufficient funds.");
 			throw new IllegalArgumentException();
 		} else {
-			this.bet = bet; // saves new bet replaces last bet
-			logger.log("Success! 20002A: Withdrawal of " + bet + " has been deducted from the account!");
-			setBalance(-this.bet);
+			this.withdrawal = withdrawal; // saves new withdrawal replaces last withdrawal
+			logger.log("Success! 20002A: Withdrawal of " + withdrawal + " has been deducted from the account!");
+			setBalance(-this.withdrawal);
 		}
 	}
 
-	public double getBet() {
-		return this.bet; // returns the last bet player made
+	public double getWithdrawal() {
+		return this.withdrawal; // returns the last withdrawal player made
 	}
 
 	private void setBalance(double transaction) {
@@ -64,8 +64,8 @@ public class Account {
 		String transactionString = df.format(Math.abs(transaction));
 		if (transaction > 0.00) { // transaction: buy-in
 			this.action = "Buy-in";
-		} else { // transaction: bet
-			this.action = "Bet of $" + transactionString;
+		} else { // transaction: withdrawal
+			this.action = "Withdrawal of $" + transactionString;
 
 		}
 		this.logger.log("Sucess 20003A: Balance has been updated. $" + transaction + " was added to the balance.");

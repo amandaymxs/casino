@@ -38,8 +38,8 @@ public class Player {
 			return this.lastName;
 		}
 		
-		public void setStatus(boolean status) {
-			this.status = status;
+		public void setStatus() {
+			this.status = !status;
 			this.logger.log("Success! Player's status has been updated to " + this.status);
 		}
 		
