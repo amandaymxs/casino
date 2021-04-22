@@ -11,19 +11,19 @@ public class RoundState {
 	private Player buttonHolder, smallBlind, bigBlind;
 
 	private ArrayList<Boolean> didBets = new ArrayList<Boolean>();
-	private ArrayList<Double> roundBets = new ArrayList<Double>();
+	private ArrayList<Double> activeBets = new ArrayList<Double>();
 
 	private int firstActingPlayer;		//first acting player in the round
 	private int actCounter = 0; 	// how many bets have been made in the current round
 	private int roundCounter = 0; 	// counter for number of complete rounds (pre-flop: 0, flop: 1, turn: 2, river:
 											// 3, showdown: 4)
 	private int raiseCounter = 0;	// how many raises have been made in the current round (maximum of 3 raises)
-	private double previousRaise = 0;		//previous player's raise in current round
+	private Double previousRaise;		//previous player's raise in current round
 
 	RoundState(int numPlayers) {
 		for (int index = 0; index < numPlayers; index++) {
 			didBets.add(false);
-			roundBets.add(0.00);
+			activeBets.add(0.00);
 		}
 	}
 
@@ -34,17 +34,6 @@ public class RoundState {
 	// is usually 2*small blind amount
 	// In heads+up game (2 players only) the button holder plays small blind while
 	// the opponent plays big blind.
-
-	private int getCurrentPlayer() {
-		logger.log("The button holder is : " + isButtonHolder + "and bettingPlayerOffset is : " + bettingPlayerOffset + ".");
-		if(bettingPlayerOffset == 0) {		//current player of pre-flop
-			return firstBettingPlayer + actCounter % p.size();
-		} else if (isButtonHolder == p.get(0)) {	//if buttonHolder is still in game
-			return 1;
-		} else {	//buttonHolder is no longer in the game
-			return 0;		//player next to button holder places first bet	
-		}
-	}
 	
 	void setButtonHolder(Player player) {
 		this.buttonHolder = player;
@@ -118,38 +107,39 @@ public class RoundState {
 		didBets.set(index, !didBets.get(index));
 	}
 	
-	void setRoundBet(int index, double amount) {
-		roundBets.set(index, amount);
+	void setActiveBet(int index, double amount) {
+		activeBets.set(index, amount);
 	}
 	
-	double roundBet(int player) {
-		return roundBets.get(player);	//do i need to copy array to return deep copy of element?
+	double activeBet(int player) {
+		return activeBets.get(player);	//do i need to copy array to return deep copy of element?
 	}
 	
-	String getRoundBets() {
-		return Arrays.toString(roundBets.toArray());
+	String getActiveBets() {
+		return Arrays.toString(activeBets.toArray());
 	}
 	
 	void removeBets(int player) {
 		didBets.remove(player);
-		roundBets.remove(player);
+		activeBets.remove(player);
 	}
 
-	void clearBetStates(int numPlayers) {
+	void clearBetStates() {
 		this.didBets.clear();
-		this.roundBets.clear();
+		this.activeBets.clear();
 	}
 	
-	void setPreviousRaise() {
-		this.previousRaise++;
+	void setPreviousRaise(Double raise) {
+		this.previousRaise = raise;
+		}
 	}
 	
-	double previousRaise() {
+	Double previousRaise() {
 		return this.previousRaise;
 	}
 	
 	void clearPreviousRaise() {
-		this.previousRaise = 0;
+		this.previousRaise = null;
 	}
 	
 	boolean didAllPlayersBet() {
@@ -164,8 +154,8 @@ public class RoundState {
 	}
 	
 	boolean isPotEven() { // do all players have the same amount in pot?
-		for (Double element : roundBets) {
-			if (!element.equals(roundBets.get(0))) {
+		for (Double activeBet : activeBets) {
+			if (!activeBet.equals(activeBets.get(0))) {
 				logger.log("Is Pot Even? : " + false);
 				return false;
 			}

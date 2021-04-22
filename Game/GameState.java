@@ -10,7 +10,7 @@ public class GameState {
 		this.isGameStarted = false;
 	}
 	
-	public void setGameCounter() {
+	public void gameCounter() {
 		this.gameCounter++;
 	}
 	
