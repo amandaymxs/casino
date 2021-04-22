@@ -4,21 +4,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import Casino.Logger;
-//import Casino.Player;
+import Casino.Player;
 
 public class RoundState {
 	private Logger logger = new Logger(true);
-//	private Player isButtonHolder;
+	private Player buttonHolder, smallBlind, bigBlind;
 
 	private ArrayList<Boolean> didBets = new ArrayList<Boolean>();
 	private ArrayList<Double> roundBets = new ArrayList<Double>();
 
-	private int buttonHolder, smallBlind, bigBlind, firstBettingPlayer, smallBlindOffset, bigBlindOffset, bettingPlayerOffset;
-	private int roundCounter = 0; // counter for number of complete rounds (pre-flop: 0, flop: 1, turn: 2, river:
+	private int firstActingPlayer;		//first acting player in the round
+	private int actCounter = 0; 	// how many bets have been made in the current round
+	private int roundCounter = 0; 	// counter for number of complete rounds (pre-flop: 0, flop: 1, turn: 2, river:
 											// 3, showdown: 4)
-	private int betCounter = 0; // how many bets have been made in the current round
-	private int raiseCounter = 0; // how many raises have been made in the current round (maximum of 3 raises)
-
+	private int raiseCounter = 0;	// how many raises have been made in the current round (maximum of 3 raises)
+	private double previousRaise = 0;		//previous player's raise in current round
 
 	RoundState(int numPlayers) {
 		for (int index = 0; index < numPlayers; index++) {
@@ -34,73 +34,79 @@ public class RoundState {
 	// is usually 2*small blind amount
 	// In heads+up game (2 players only) the button holder plays small blind while
 	// the opponent plays big blind.
-	void setButtonBlinds(int numPlayers, int gameCounter) {
-		if (numPlayers == 2) {
-			smallBlindOffset = 0;
-			bigBlindOffset = 1;
-			firstBettingPlayer = 0; // first betting player
-		} else {
-			smallBlindOffset = 1;
-			bigBlindOffset = 2;
-//			firstBettingPlayer = 3; // first betting player
-//			bettingPlayerOffset = 0; // pre-flop betting will be 0 offset, increment after every BETTING round
+
+	private int getCurrentPlayer() {
+		logger.log("The button holder is : " + isButtonHolder + "and bettingPlayerOffset is : " + bettingPlayerOffset + ".");
+		if(bettingPlayerOffset == 0) {		//current player of pre-flop
+			return firstBettingPlayer + actCounter % p.size();
+		} else if (isButtonHolder == p.get(0)) {	//if buttonHolder is still in game
+			return 1;
+		} else {	//buttonHolder is no longer in the game
+			return 0;		//player next to button holder places first bet	
 		}
-//		setIsButtonHolder(buttonHolder);
-		buttonHolder = gameCounter % didBets.size();
-		smallBlind = (gameCounter + smallBlindOffset) % didBets.size();
-		bigBlind = (gameCounter + bigBlindOffset) % didBets.size();
-		firstBettingPlayer = (gameCounter + bettingPlayerOffset) % didBets.size();
 	}
 	
-//	private void setIsButtonHolder(Player player) {
-//		this.isButtonHolder = player;
-//	}
-//
-//	Player getIsButtonHolder() { // return copy?
-//		return this.isButtonHolder;
-//	}
-	
-	int getButtonHolder() {
+	void setButtonHolder(Player player) {
+		this.buttonHolder = player;
+	}
+
+	Player buttonHolder() { // return copy?
 		return this.buttonHolder;
 	}
 	
-	int getSmallBlind() {
+	void setSmallBlind(Player player) {
+		this.smallBlind = player;
+	}
+	
+	Player smallBlind() {
 		return this.smallBlind;
 	}
 	
-	int getBigBlind() {
+	void setBigBlind(Player player) {
+		this.bigBlind = player;
+	}
+	
+	Player bigBlind() {
 		return this.bigBlind;
 	}
 	
-//	int getFirstBettingPlayer() {
-//		return this.firstBettingPlayer;
-//	}
-
+	void setFirstActingPlayer(int firstActingPlayer) {
+		this.firstActingPlayer = firstActingPlayer;
+	}
+	
+	int firstActingPlayer() {
+		return this.firstActingPlayer;
+	}
+	
 	void setRoundCounter() {
 		this.roundCounter++;
 	}
 	
-	int getRoundCounter() {
+	int roundCounter() {
 		return this.roundCounter;
 	}
 	
-	void setBetCounter() {
-		this.betCounter++;
+	void clearRoundCounter() {
+		this.roundCounter = 0;
 	}
 	
-	void clearBetCounter() {
-		this.betCounter = 0;
+	void setActCounter() {
+		this.actCounter++;
 	}
 	
-	int getBetCounter() {
-		return this.betCounter;
+	int actCounter() {
+		return this.actCounter;
+	}
+	
+	void clearActCounter() {
+		this.actCounter = 0;
 	}
 	
 	void setRaiseCounter() {
 		this.raiseCounter++;
 	}
 	
-	int getRaiseCounter() {
+	int raiseCounter() {
 		return this.raiseCounter;
 	}
 	
@@ -116,7 +122,7 @@ public class RoundState {
 		roundBets.set(index, amount);
 	}
 	
-	double getRoundBet(int player) {
+	double roundBet(int player) {
 		return roundBets.get(player);	//do i need to copy array to return deep copy of element?
 	}
 	
@@ -132,6 +138,18 @@ public class RoundState {
 	void clearBetStates(int numPlayers) {
 		this.didBets.clear();
 		this.roundBets.clear();
+	}
+	
+	void setPreviousRaise() {
+		this.previousRaise++;
+	}
+	
+	double previousRaise() {
+		return this.previousRaise;
+	}
+	
+	void clearPreviousRaise() {
+		this.previousRaise = 0;
 	}
 	
 	boolean didAllPlayersBet() {
