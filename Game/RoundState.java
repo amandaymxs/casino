@@ -9,7 +9,6 @@ import Casino.Player;
 
 public class RoundState {
 	private Logger logger = new Logger(true);
-	private Player buttonHolder, smallBlind, bigBlind;
 
 	private ArrayList<Boolean> didBets = new ArrayList<Boolean>();
 	private ArrayList<Double> activeBets = new ArrayList<Double>();
@@ -37,30 +36,6 @@ public class RoundState {
 	// In heads+up game (2 players only) the button holder plays small blind while
 	// the opponent plays big blind.
 
-	void setButtonHolder(Player player) {
-		this.buttonHolder = player;
-	}
-
-	Player buttonHolder() { // return copy?
-		return this.buttonHolder;
-	}
-
-	void setSmallBlind(Player player) {
-		this.smallBlind = player;
-	}
-
-	Player smallBlind() {
-		return this.smallBlind;
-	}
-
-	void setBigBlind(Player player) {
-		this.bigBlind = player;
-	}
-
-	Player bigBlind() {
-		return this.bigBlind;
-	}
-	
 	void setDidRaise(boolean bool) {
 		this.didRaise = bool;
 	}

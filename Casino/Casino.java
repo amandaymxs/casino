@@ -12,31 +12,33 @@ public class Casino {
 
 		inCasino.add(new Player("Charlotte", "Mann"));
 		inCasino.add(new Player("Liam", "Lee"));
-		inCasino.add(new Player("Olivia", "Wong"));
+//		inCasino.add(new Player("Olivia", "Wong"));
 
 		inCasino.get(0).account.loadAccount(100.00);
 		inCasino.get(1).account.loadAccount(80);
-		inCasino.get(2).account.loadAccount(110);
+//		inCasino.get(2).account.loadAccount(110);
 
 		TexasHoldemTable.seat(inCasino.get(0));
 		TexasHoldemTable.seat(inCasino.get(1));
-		TexasHoldemTable.seat(inCasino.get(2));
+//		TexasHoldemTable.seat(inCasino.get(2));
 
 		System.out.println("Seated at table: " +TexasHoldemTable.getSeated());
 		TexasHoldemTable.prepareGame();	//push everyone who's seating into the game
 		TexasHoldemTable.game.startGame();
 		
 		TexasHoldemTable.game.dealCards();
-		TexasHoldemTable.game.betting();	//pre-flop betting
 		do{
-			TexasHoldemTable.game.r.setRoundCounter();	//roundCounter++
 			TexasHoldemTable.game.dealBoard();	//flop
 			TexasHoldemTable.game.betting();	//flop betting
-			if(!TexasHoldemTable.game.r.didRaise()) {	//if every player checked
-				//do something
+			if(TexasHoldemTable.game.g.isEndGame()) {
+				break;
 			}
-		} while (!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() <5);
-		if(!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() == 5) {
+			else if(!TexasHoldemTable.game.r.didRaise()) {	//if every player checked
+				TexasHoldemTable.game.freeCard();
+			}
+			TexasHoldemTable.game.r.setRoundCounter();	//roundCounter++
+		} while (!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() < 3);
+		if(!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() == 4) {
 			//do something
 		}
 		System.out.println(TexasHoldemTable);

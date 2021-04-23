@@ -36,7 +36,7 @@ public class Deck {
 	}
 
 	public String deal() {
-//		this.logger.log("Bbefore: " + deck);
+//		this.logger.log("Before: " + deck);
 		int card = (int) (Math.random() * deck.size());
 //		this.logger.log("Success 20003D: Card number " + card + " was dealt");
 //		this.logger.log("After: " + deck);

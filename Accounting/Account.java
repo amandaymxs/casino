@@ -24,15 +24,9 @@ public class Account {
 	}
 
 	public void loadAccount(double deposit) {
-		if (deposit < 40 || deposit > 200) {
-			System.err.println("Error A1001: Buy-in amount $" + deposit
-					+ "is exceeds range allowed. Please enter a buy in withdrawalween $40 and $200");
-			throw new IllegalArgumentException();
-		} else {
 			this.deposit = deposit; // saves new buy-in replaces last buy-in
 			logger.log("Success! 20001A: Deposit of " + df.format(deposit) + " has been added to the account!");
 			setBalance(this.deposit);
-		}
 	}
 
 	public double getLastLoad() {
