@@ -22,16 +22,23 @@ public class Casino {
 		TexasHoldemTable.seat(inCasino.get(1));
 		TexasHoldemTable.seat(inCasino.get(2));
 
-		TexasHoldemTable.getSeated();
-		TexasHoldemTable.startGame();	//push everyone who's seating into the game
-		
-		TexasHoldemTable.game.getButtonBlind();
+		System.out.println("Seated at table: " +TexasHoldemTable.getSeated());
+		TexasHoldemTable.prepareGame();	//push everyone who's seating into the game
+		TexasHoldemTable.game.startGame();
 		
 		TexasHoldemTable.game.dealCards();
-		TexasHoldemTable.game.bettingRound();	//pre-flop betting
-		TexasHoldemTable.game.dealBoard();	//flop
-		TexasHoldemTable.game.bettingRound();	//flop betting
-		
+		TexasHoldemTable.game.betting();	//pre-flop betting
+		do{
+			TexasHoldemTable.game.r.setRoundCounter();	//roundCounter++
+			TexasHoldemTable.game.dealBoard();	//flop
+			TexasHoldemTable.game.betting();	//flop betting
+			if(!TexasHoldemTable.game.r.didRaise()) {	//if every player checked
+				//do something
+			}
+		} while (!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() <5);
+		if(!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() == 5) {
+			//do something
+		}
 		System.out.println(TexasHoldemTable);
 		System.out.println(TexasHoldemTable.game);
 	}

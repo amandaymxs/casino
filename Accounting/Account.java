@@ -30,7 +30,7 @@ public class Account {
 			throw new IllegalArgumentException();
 		} else {
 			this.deposit = deposit; // saves new buy-in replaces last buy-in
-			logger.log("Success! 20001A: Deposit of " + deposit + " has been added to the account!");
+			logger.log("Success! 20001A: Deposit of " + df.format(deposit) + " has been added to the account!");
 			setBalance(this.deposit);
 		}
 	}
@@ -39,18 +39,13 @@ public class Account {
 		return this.deposit; // returns the last buy-in player made
 	}
 
-	public void setWithdrawal(double withdrawal) {
-		if (withdrawal > 4.00 * 4) { // maximum of three raises per round where $4 is the big blind already in the
-								// pot therefore $4 + ($4 * 3 raises)
-			System.err.println(
-					"Error A1002: Withdrawal amount of $" + withdrawal + " invalid, withdrawal must be in increments of $8 (big blind)");
-			throw new IllegalArgumentException();
-		} else if (withdrawal > this.balance) {
+	public void withdrawal(double withdrawal) {
+if (withdrawal > this.balance) {
 			System.err.println("Error A1003: Insufficient funds.");
 			throw new IllegalArgumentException();
 		} else {
 			this.withdrawal = withdrawal; // saves new withdrawal replaces last withdrawal
-			logger.log("Success! 20002A: Withdrawal of " + withdrawal + " has been deducted from the account!");
+			logger.log("Success! 20002A: Withdrawal of " + df.format(withdrawal) + " has been deducted from the account!");
 			setBalance(-this.withdrawal);
 		}
 	}
@@ -61,12 +56,10 @@ public class Account {
 
 	private void setBalance(double transaction) {
 		this.balance += transaction;
-		String transactionString = df.format(Math.abs(transaction));
 		if (transaction > 0.00) { // transaction: buy-in
 			this.action = "Buy-in";
 		} else { // transaction: withdrawal
-			this.action = "Withdrawal of $" + transactionString;
-
+			this.action = "Withdrawal of $" + df.format(Math.abs(transaction));
 		}
 		this.logger.log("Sucess 20003A: Balance has been updated. $" + transaction + " was added to the balance.");
 		transactions.add(new Transaction(this.action, transaction, this.balance));

@@ -15,8 +15,8 @@ public class Game {
 	final DecimalFormat df = new DecimalFormat("#.00");
 	static final Scanner userInput = new Scanner(System.in);
 
-	GameState g = new GameState();
-	RoundState r;
+	public GameState g = new GameState();
+	public RoundState r;
 
 	ArrayList<Player> p = new ArrayList<Player>(); // Players in the game
 	private ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
@@ -44,7 +44,7 @@ public class Game {
 		ArrayList<Player> pCopy = new ArrayList<Player>(p);
 		return pCopy;
 	}
-	
+
 	public int getNumberPlayers() {
 		return p.size();
 	}
@@ -69,13 +69,16 @@ public class Game {
 	}
 
 	public void startGame() {
+		logger.log("Start game method Game line 72------------------");
 		g.setIsGameStarted();
+		System.out.println("Game line 74------------------");
 		gameTracking.add(new Transaction("New Round", r.roundCounter(), 0.00, 0.00));
 		setButtonBlinds(p.size(), g.getGameCounter());
+		System.out.println("Game line 76------------------");
 		System.out.println("Blinds will be withdrawn from small blind and big blind accounts:");
 		collectForcedBets(r.smallBlind(), smallBlindAmount, "Small Blind");
 		collectForcedBets(r.bigBlind(), bigBlindAmount, "Big Blind");
-//		System.out.println("button holder is :" + r.getIsButtonHolder());
+		logger.log("after collectForcedBets");
 	}
 
 	void setButtonBlinds(int numPlayers, int gameCounter) {
@@ -94,35 +97,37 @@ public class Game {
 	}
 
 	private void collectForcedBets(Player player, double amount, String description) {
-		player.account.setWithdrawal(amount);
+		player.account.withdrawal(amount);
 		r.setActiveBet(p.indexOf(player), amount);
-		this.logger.logFormat(String.format("%-15s %-15s %-20s %7.2f \n", player.getFirstName(), player.getLastName(),
-				description, amount));
 		setPot(amount);
 		gameTracking.add(new Transaction(player.getFirstName(), player.getLastName(), description, amount, this.pot));
 	}
 
 	public void betting() { // players placing bets
-
-		// set up
-		if (r.roundCounter() == 0 && r.actCounter() == 0) { // first player of pre-flop only
-			r.setFirstActingPlayer(3);
-			actingPlayer = r.firstActingPlayer();
-		} else if (r.roundCounter() > 0 && r.actCounter() == 0) { // first player of every other round
-			if (p.contains(r.buttonHolder())) {
-				r.setFirstActingPlayer(1); // if button holder is still in the game then it's the first player to the
-											// left
-			} else {
-				r.setFirstActingPlayer(0); // if button holder is no longer in the game then it's the first player in
-											// arraylist's turn
-			}
-			actingPlayer = r.firstActingPlayer();
-		} else {
-			actingPlayer = r.firstActingPlayer() + r.actCounter();
-		}
-
+		r.setDidRaise(false);
 		do {
-			if (r.roundCounter() == 0 && r.bigBlind() == p.get(actingPlayer)) {
+			// set up
+			if (r.roundCounter() == 0 && r.actCounter() == 0) { // first player of pre-flop only
+				r.setFirstActingPlayer(3 % p.size());
+				actingPlayer = r.firstActingPlayer();
+			} else if (r.roundCounter() > 0 && r.actCounter() == 0) { // first player of every other round
+				if (p.contains(r.buttonHolder())) {
+					r.setFirstActingPlayer(1); // if button holder is still in the game then it's the first player to
+												// the left
+				} else {
+					r.setFirstActingPlayer(0); // if button holder is no longer in the game then it's the first player
+												// in arraylist's turn
+				}
+				actingPlayer = r.firstActingPlayer();
+			} else {
+				actingPlayer = (r.firstActingPlayer() + r.actCounter()) % p.size();
+			}
+			logger.log("//////////BEFORE INPUT/////////////////////");
+			logger.log("Game: " + g.getGameCounter() + ", Round: " + r.roundCounter() + ", ActCount: " + r.actCounter()
+					+ ".");
+			logger.log("Did bets: " + r.getDidBets());
+			logger.log("ActiveBets: " + r.getActiveBets());
+			if ((r.roundCounter() == 0 && r.bigBlind() == p.get(actingPlayer) && r.previousRaise() == 0.0) || (r.roundCounter() > 0 && r.actCounter() == 0)) {
 				System.out.println(
 						p.get(actingPlayer).getFirstName() + ", enter if you would like to check, bet, or fold.");
 			} else if (r.raiseCounter() < 3) {
@@ -134,9 +139,11 @@ public class Game {
 
 			// user input
 			String response = userInput.nextLine();
+			logger.log("PREVIOUS RAISE: " + r.previousRaise());
 			if (response.equalsIgnoreCase("fold")) {
 				playerFold(actingPlayer);
-				if (r.hasOneWinner(this.pot)) {
+				logger.log("Line 141: playerFold complete.");
+				if (g.hasOneWinner(r.getActiveBetsSize(), this.pot)) {
 					System.out.println(
 							"Player " + p.get(0) + " is the winner! Congradulations " + p.get(0).getFirstName() + "!");
 					// withdraw pot balance
@@ -144,26 +151,33 @@ public class Game {
 					// add pot balance to player's account
 					p.get(0).account.loadAccount(this.pot);
 					resetGame();
+					g.gameCounter();
 					break;
 				}
 				continue;
 			} else if (response.equalsIgnoreCase("call") || response.equalsIgnoreCase("check")) {
 				playerCall(actingPlayer);
+				logger.log("Line 154: playerCall complete.");
 			} else if ((response.equalsIgnoreCase("bet") || response.equalsIgnoreCase("raise"))
 					&& r.raiseCounter() < 3) {
 				playerBet(actingPlayer);
+				logger.log("Line 158: playerBet complete.");
 			} else { // error handle - or set default
 				userInput.nextLine();
 				System.err.println("Error 1004G: Please enter a valid response.");
 			}
+			logger.log("**************AFTER INPUT********************");
 		} while (!r.didAllPlayersBet() || !r.isPotEven());
+		r.clearDidBets();
 		r.clearRaiseCounter();
-		r.setPreviousRaise(Double.valueOf(null));
-//		bettingPlayerOffset++; // next round the first betting player is
-		if (r.roundCounter() == 5 && !r.hasOneWinner(this.pot)) {
+		r.clearActCounter();
+		r.setPreviousRaise(0.0);
+		if (r.roundCounter() == 5 && !g.hasOneWinner(r.getActiveBetsSize(), this.pot)) {
 			// evaluate cards
 			logger.log("End of Round. Who is the winner?");
-			resetGame();
+//			resetGame();
+
+//			g.gameCounter();
 		}
 	}
 
@@ -175,14 +189,14 @@ public class Game {
 			}
 		}
 	}
-	
+
 	public void dealBoard() {
 		deck.deal(); // burn: first card dealt faced down
 		if (boardCounter == 0) { // end of pre-flop
 			for (int i = 0; i < 3; i++) {
 				setCommunityCards(i, deck.deal());
 				boardCounter++;
-				}
+			}
 		} else if (boardCounter < 5) { // make sure not more than five cards get pushed to the communityCards array
 			setCommunityCards(boardCounter, deck.deal());
 		} else {
@@ -190,11 +204,11 @@ public class Game {
 		}
 		logger.log(getCommunityCards());
 	}
-	
+
 	private void setCommunityCards(int index, String card) {
 		communityCards[index] = card;
 	}
-	
+
 	public String getCommunityCards() {
 		String[] copyCommunityCards = Arrays.copyOf(communityCards, 5);
 		return Arrays.toString(copyCommunityCards);
@@ -215,7 +229,7 @@ public class Game {
 			addTransactionHistory(player, "Check", 0.00, this.pot);
 		} else {
 			// deduct player's account
-			p.get(player).account.setWithdrawal(callAmount);
+			p.get(player).account.withdrawal(callAmount);
 			// add amount to pot
 			r.setActiveBet(player, r.activeBet(player) + callAmount);
 			this.pot += callAmount;
@@ -223,56 +237,30 @@ public class Game {
 			addTransactionHistory(player, "Call", callAmount, this.pot);
 		}
 		r.setActCounter();
-		r.setDidBet(player);
+		r.setDidBet(player, true);
 	}
 
 	private void playerBet(int player) {
-		boolean caught = false;
-		double raise;
-		double minimumBet;
-		if (r.previousRaise() == null) {
-			if (r.roundCounter() == 0.00) {
-				minimumBet = 0.00;
-			} else if (r.roundCounter() == 1) {
-				minimumBet = bigBlindAmount;
-			} else {
-				minimumBet = 2 * bigBlindAmount;
-			}
-		} else {
-			minimumBet = r.previousRaise().doubleValue();
+		double raise = bigBlindAmount;
+		if (r.roundCounter() >= 2) {
+			raise = 2 * bigBlindAmount;
 		}
-		do {
-			System.out.println("Enter raise amount, the minimum amount is " + minimumBet);
-			if (userInput.hasNextInt()) {
-				raise = userInput.nextInt();
-				if ((raise >= minimumBet) && 
-						((r.roundCounter() == 0 && raise <= bigBlindAmount)
-						|| (r.roundCounter() == 1 && raise >= bigBlindAmount)
-						|| (r.roundCounter() >= 2 && raise >= 2 * bigBlindAmount))) {
-					caught = true;
-					// deduct player's account
-					double addToPot = r.activeBet((player + p.size() - 1) % p.size()) - r.activeBet(player) + raise;
-					p.get(player).account.setWithdrawal(addToPot);
-					// add amount to pot
-					r.setActiveBet(player, r.activeBet((player + p.size() - 1) % p.size()) + raise);
-					this.pot += addToPot;
-					// add to game transaction history
-					String action = "Raised by $ " + df.format(raise);
-					addTransactionHistory(player, action, addToPot, this.pot);
-					r.setPreviousRaise(Double.valueOf(raise));
-					r.setActCounter();
-					r.setRaiseCounter();
-					r.setDidBet(player);
-					userInput.nextLine();
-				}
-			} else {
-				userInput.nextLine();
-				System.out.println("Error 10006G: Try again. Enter a valid raise amount");
-			}
-		} while (!caught);
-
+		// deduct player's account
+		double addToPot = r.activeBet((player + p.size() - 1) % p.size()) - r.activeBet(player) + raise;
+		p.get(player).account.withdrawal(addToPot);
+		// add amount to pot
+		r.setActiveBet(player, r.activeBet((player + p.size() - 1) % p.size()) + raise);
+		this.pot += addToPot;
+		// add to game transaction history
+		String action = "Raised by $ " + df.format(raise);
+		addTransactionHistory(player, action, addToPot, this.pot);
+		r.setPreviousRaise(raise);
+		r.setActCounter();
+		r.setRaiseCounter();
+		r.clearDidBets();
+		r.setDidBet(player, true);
+		r.setDidRaise(true);
 	}
-
 
 	private void setPot(double change) {
 		this.pot += change;
@@ -280,7 +268,7 @@ public class Game {
 
 	public double getPot() {
 		return this.pot;
-	}	
+	}
 
 	private void addTransactionHistory(int player, String action, double amountChange, double pot) {
 		gameTracking.add(
@@ -294,13 +282,11 @@ public class Game {
 			communityCards[i] = null;
 		}
 		boardCounter = 0; // reset community cards counter to 0
-		g.gameCounter(); // game positions ++ clockwise
+		g.clearGameCounter(); // game positions ++ clockwise
 		r.clearActCounter();
-		r.clearPreviousRaise();
 		r.clearBetStates();
-		r.setPreviousRaise(Double.valueOf(null));
+		r.setPreviousRaise(0.0);
 	}
-
 
 	public String toString() {
 		return "There are " + p.size() + " Players in the game and the pot is " + getPot() + ".";

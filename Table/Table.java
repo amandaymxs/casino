@@ -33,7 +33,7 @@ public class Table {
 		return isSeatedCopy;
 	}
 	
-	public void startGame() {
+	public void prepareGame() {
 		game = new Game(isSeated);
 	}
 
