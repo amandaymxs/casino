@@ -68,16 +68,12 @@ public class Game {
 	}
 
 	public void startGame() {
-		logger.log("Start game method Game line 72------------------");
 		g.setIsGameStarted();
-		System.out.println("Game line 74------------------");
 		gameTracking.add(new Transaction("New Round", r.roundCounter(), 0.00, 0.00));
 		setButtonBlinds(p.size(), g.getGameCounter());
-		System.out.println("Game line 76------------------");
 		System.out.println("Blinds will be withdrawn from small blind and big blind accounts:");
 		collectForcedBets(g.smallBlind(), smallBlindAmount, "Small Blind");
 		collectForcedBets(g.bigBlind(), bigBlindAmount, "Big Blind");
-		logger.log("after collectForcedBets");
 	}
 
 	void setButtonBlinds(int numPlayers, int gameCounter) {
@@ -221,6 +217,10 @@ public class Game {
 		r.removeBets(player);
 		addTransactionHistory(player, "Fold", 0.00, g.pot());
 		p.get(player).setStatus();
+		logger.log("Cards before fold: " + p.get(player).hand);
+		p.get(player).hand.clearHand();
+		logger.log("Cards after fold: " + p.get(player).hand);
+		logger.log(p.get(player).getFirstName() + "'s hand has been cleared: " + p.get(player).hand);
 		p.remove(player); // must be removed last
 		logger.log("After Fold Num Players: " + getNumberPlayers() + ".");
 	}
@@ -265,7 +265,7 @@ public class Game {
 	}
 
 	public void freeCard() {
-
+		
 	}
 
 	private void addTransactionHistory(int player, String action, double amountChange, double pot) {
@@ -284,6 +284,8 @@ public class Game {
 		r.clearActCounter();
 		r.clearBetStates();
 		r.setPreviousRaise(0.0);
+		p.get(0).hand.clearHand();
+			logger.log(p.get(0).getFirstName() + "'s hand has been cleared: " + p.get(0).hand);
 	}
 
 	public String toString() {

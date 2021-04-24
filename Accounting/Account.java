@@ -51,7 +51,7 @@ if (withdrawal > this.balance) {
 	private void setBalance(double transaction) {
 		this.balance += transaction;
 		if (transaction > 0.00) { // transaction: buy-in
-			this.action = "Buy-in";
+			this.action = "Deposit of $" + df.format(Math.abs(transaction));
 		} else { // transaction: withdrawal
 			this.action = "Withdrawal of $" + df.format(Math.abs(transaction));
 		}

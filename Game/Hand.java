@@ -39,8 +39,8 @@ public class Hand {
 	}
 
 	public void clearHand() {
-		for (String card : this.cards) {
-			card = null;
+		for (int i = 0; i < cards.length; i++) {
+			cards[i] = null;
 		}
 		cardCounter = 0;
 	}

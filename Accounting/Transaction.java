@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter;
 import Casino.Logger;
 
 public class Transaction {
-	private Logger logger = new Logger(false);
+	private Logger logger = new Logger(true);
 	LocalDateTime date = LocalDateTime.now();;
 	DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 	
