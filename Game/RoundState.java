@@ -19,7 +19,6 @@ public class RoundState {
 									// 3, showdown: 4)
 	private int raiseCounter = 0; // how many raises have been made in the current round (maximum of 3 raises)
 	private double previousRaise = 0.0; // previous player's raise in current round
-	private boolean didRaise = false;
 
 	RoundState(int numPlayers) {
 		for (int index = 0; index < numPlayers; index++) {
@@ -35,14 +34,6 @@ public class RoundState {
 	// is usually 2*small blind amount
 	// In heads+up game (2 players only) the button holder plays small blind while
 	// the opponent plays big blind.
-
-	void setDidRaise(boolean bool) {
-		this.didRaise = bool;
-	}
-	
-	public boolean didRaise() {
-		return this.didRaise;
-	}
 
 	void setFirstActingPlayer(int firstActingPlayer) {
 		this.firstActingPlayer = firstActingPlayer;

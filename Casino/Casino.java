@@ -33,9 +33,6 @@ public class Casino {
 			if(TexasHoldemTable.game.g.isEndGame()) {
 				break;
 			}
-			else if(!TexasHoldemTable.game.r.didRaise()) {	//if every player checked
-				TexasHoldemTable.game.freeCard();
-			}
 			TexasHoldemTable.game.r.setRoundCounter();	//roundCounter++
 		} while (!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() < 3);
 		if(!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() == 4) {

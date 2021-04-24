@@ -97,7 +97,6 @@ public class Game {
 	}
 
 	public void betting() { // players placing bets
-		r.setDidRaise(false);
 		do {
 			// set up
 			if (r.roundCounter() == 0 && r.actCounter() == 0) { // first player of pre-flop only
@@ -261,7 +260,6 @@ public class Game {
 		r.setRaiseCounter();
 		r.clearDidBets();
 		r.setDidBet(player, true);
-		r.setDidRaise(true);
 	}
 
 	public void freeCard() {
