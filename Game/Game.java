@@ -17,6 +17,7 @@ public class Game {
 
 	public GameState g = new GameState();
 	public RoundState r;
+	Rank rank;
 
 	ArrayList<Player> p = new ArrayList<Player>(); // Players in the game
 	private ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
@@ -93,7 +94,7 @@ public class Game {
 		player.account.withdrawal(amount);
 		r.setActiveBet(p.indexOf(player), amount);
 		g.setPot(amount);
-		gameTracking.add(new Transaction(player.getFirstName(), player.getLastName(), description, amount, g.pot()));
+		gameTracking.add(new Transaction(player.firstName(), player.lastName(), description, amount, g.pot()));
 	}
 
 	public void betting() { // players placing bets
@@ -125,13 +126,13 @@ public class Game {
 			logger.log("ActiveBets: " + r.getActiveBets());
 			if ((r.roundCounter() == 0 && g.bigBlind() == p.get(actingPlayer) && r.previousRaise() == 0.0)
 					|| (r.roundCounter() > 0 && r.actCounter() == 0)) {
-				System.out.println(
-						p.get(actingPlayer).getFirstName() + ", enter if you would like to check, bet, or fold.");
+				System.out
+						.println(p.get(actingPlayer).firstName() + ", enter if you would like to check, bet, or fold.");
 			} else if (r.raiseCounter() < 3) {
 				System.out.println(
-						p.get(actingPlayer).getFirstName() + ", enter if you would like to call, raise, or fold.");
+						p.get(actingPlayer).firstName() + ", enter if you would like to call, raise, or fold.");
 			} else {
-				System.out.println(p.get(actingPlayer).getFirstName() + ", enter if you would like to call or fold.");
+				System.out.println(p.get(actingPlayer).firstName() + ", enter if you would like to call or fold.");
 			}
 
 			// user input
@@ -142,7 +143,7 @@ public class Game {
 				logger.log("Line 141: playerFold complete.");
 				if (g.hasOneWinner(r.getActiveBetsSize(), g.pot())) {
 					System.out.println(
-							"Player " + p.get(0) + " is the winner! Congradulations " + p.get(0).getFirstName() + "!");
+							"Player " + p.get(0) + " is the winner! Congradulations " + p.get(0).firstName() + "!");
 					// withdraw pot balance
 					addTransactionHistory(0, "Winner", -(g.pot()), 0.00);
 					// add pot balance to player's account
@@ -158,6 +159,10 @@ public class Game {
 			} else if ((response.equalsIgnoreCase("bet") || response.equalsIgnoreCase("raise"))
 					&& r.raiseCounter() < 3) {
 				playerBet(actingPlayer);
+				if (r.roundCounter() == 3) {
+					r.setDidRaise(true);
+					r.setLastAggressor(actingPlayer);
+				}
 				logger.log("Line 158: playerBet complete.");
 			} else { // error handle - or set default
 				System.err.println("Error 1004G: Please enter a valid response.");
@@ -181,7 +186,7 @@ public class Game {
 		for (int i = 0; i < 2; i++) { // each player gets two cards
 			for (Player player : this.p) {
 				player.hand.addCard(deck.deal());
-				logger.log(player.getFirstName() + "'s hand: " + player.hand);
+				logger.log(player.firstName() + "'s hand: " + player.hand);
 			}
 		}
 	}
@@ -219,7 +224,7 @@ public class Game {
 		logger.log("Cards before fold: " + p.get(player).hand);
 		p.get(player).hand.clearHand();
 		logger.log("Cards after fold: " + p.get(player).hand);
-		logger.log(p.get(player).getFirstName() + "'s hand has been cleared: " + p.get(player).hand);
+		logger.log(p.get(player).firstName() + "'s hand has been cleared: " + p.get(player).hand);
 		p.remove(player); // must be removed last
 		logger.log("After Fold Num Players: " + getNumberPlayers() + ".");
 	}
@@ -262,28 +267,54 @@ public class Game {
 		r.setDidBet(player, true);
 	}
 
-	public void freeCard() {
-		
+	public void showDown() {
+		Player showDownActingPlayer;
+		if (r.didRaise()) {
+			logger.log("The last aggressor in the river was: " + p.get(r.lastAggressor()));
+			int counter = 0;
+			do {
+				showDownActingPlayer = p.get((r.lastAggressor() + counter) % p.size());
+				if (counter == 0) {
+					// mandatory show
+					System.out.println(showDownActingPlayer.firstName() + "'s cards: " + showDownActingPlayer.hand);
+				} else {
+					System.out.println(showDownActingPlayer.firstName() + ", do you want to show or muck?");
+					String response = userInput.nextLine();
+					if (response.equalsIgnoreCase("muck")) {
+						p.remove(p.indexOf(showDownActingPlayer));
+					} else if (response.equalsIgnoreCase("show")) {
+						System.out.println(showDownActingPlayer.firstName() + "'s cards: " + showDownActingPlayer.hand);
+						// WinningHand?
+						// Send communityCards to Rank
+						rank = new Rank(communityCards);
+						// Send player's cards to Rank
+						rank.setSevenCard(showDownActingPlayer.hand.getHand());
+					} else {
+						System.out.println("Error 30001G: Enter valid response.");
+						continue;
+					}
+				}
+				counter++;
+			} while (counter < p.size());
+		}
 	}
 
 	private void addTransactionHistory(int player, String action, double amountChange, double pot) {
-		gameTracking.add(
-				new Transaction(p.get(player).getFirstName(), p.get(player).getLastName(), action, amountChange, pot));
+		gameTracking
+				.add(new Transaction(p.get(player).firstName(), p.get(player).lastName(), action, amountChange, pot));
 	}
 
 	public void resetGame() {
 
 		deck.clearDeck();
-		for (int i = 0; i < communityCards.length; i++) { // reset community cards to null
-			communityCards[i] = null;
-		}
+		Arrays.fill(communityCards, null);
 		boardCounter = 0; // reset community cards counter to 0
 		g.clearGameCounter(); // game positions ++ clockwise
 		r.clearActCounter();
 		r.clearBetStates();
 		r.setPreviousRaise(0.0);
 		p.get(0).hand.clearHand();
-			logger.log(p.get(0).getFirstName() + "'s hand has been cleared: " + p.get(0).hand);
+		logger.log(p.get(0).firstName() + "'s hand has been cleared: " + p.get(0).hand);
 	}
 
 	public String toString() {

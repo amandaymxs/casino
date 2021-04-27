@@ -36,7 +36,7 @@ public class Casino {
 			TexasHoldemTable.game.r.setRoundCounter();	//roundCounter++
 		} while (!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() < 3);
 		if(!TexasHoldemTable.game.g.isEndGame() && TexasHoldemTable.game.r.roundCounter() == 4) {
-			//do something
+			TexasHoldemTable.game.showDown();
 		}
 		System.out.println(TexasHoldemTable);
 		System.out.println(TexasHoldemTable.game);

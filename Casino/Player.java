@@ -26,7 +26,7 @@ public class Player {
 			}
 		}
 
-		public String getFirstName() {
+		public String firstName() {
 			return this.firstName;
 		}
 
@@ -34,7 +34,7 @@ public class Player {
 			this.lastName = lastName.substring(0,1).toUpperCase() + lastName.substring(1);
 		}
 		
-		public String getLastName() {
+		public String lastName() {
 			return this.lastName;
 		}
 		

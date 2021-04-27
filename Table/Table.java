@@ -14,13 +14,13 @@ public class Table {
 
 	public void seat(Player player) {
 		if (isSeated.contains(player)) {
-			System.err.println("Error 10004T: Player " + player.getFirstName() + " is already seated at the table.");
+			System.err.println("Error 10004T: Player " + player.firstName() + " is already seated at the table.");
 		} else if (isSeated.size() < 12) {
 			if (player.account.getBalance() >= 40.00) {
 				this.isSeated.add(player);
-				this.logger.log("Success! 20001T: Player " + player.getFirstName() + " has been seated at the table!");
+				this.logger.log("Success! 20001T: Player " + player.firstName() + " has been seated at the table!");
 			} else {
-				System.err.println("Error 10001T: Player " + player.getFirstName()
+				System.err.println("Error 10001T: Player " + player.firstName()
 						+ " must have a minimum balance of $40.00 to sit at table.");
 			}
 		} else {

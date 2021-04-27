@@ -30,7 +30,11 @@ public class Hand {
 			this.logger.log("Success! New card " + card + " was added to player's hand");
 		}
 	}
-	
+
+	public String[] getHand() {
+		return cards.clone();
+	}
+
 	public boolean hasTwoCards() {
 		if (cardCounter == 2) {
 			return true;
@@ -39,9 +43,7 @@ public class Hand {
 	}
 
 	public void clearHand() {
-		for (int i = 0; i < cards.length; i++) {
-			cards[i] = null;
-		}
+		Arrays.fill(cards, null);
 		cardCounter = 0;
 	}
 

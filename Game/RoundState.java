@@ -13,12 +13,13 @@ public class RoundState {
 	private ArrayList<Boolean> didBets = new ArrayList<Boolean>();
 	private ArrayList<Double> activeBets = new ArrayList<Double>();
 
-	private int firstActingPlayer; // first acting player in the round
+	private int firstActingPlayer, lastAggressor; // first acting player in the round
 	private int actCounter = 0; // how many bets have been made in the current round
 	private int roundCounter = 0; // counter for number of complete rounds (pre-flop: 0, flop: 1, turn: 2, river:
 									// 3, showdown: 4)
 	private int raiseCounter = 0; // how many raises have been made in the current round (maximum of 3 raises)
 	private double previousRaise = 0.0; // previous player's raise in current round
+	private boolean didRaise;
 
 	RoundState(int numPlayers) {
 		for (int index = 0; index < numPlayers; index++) {
@@ -41,6 +42,14 @@ public class RoundState {
 
 	int firstActingPlayer() {
 		return this.firstActingPlayer;
+	}
+	
+	void setLastAggressor(int lastAggressor) {
+		this.lastAggressor = lastAggressor;
+	}
+	
+	int lastAggressor() {
+		return this.lastAggressor;
 	}
 
 	public void setRoundCounter() {
@@ -123,6 +132,14 @@ public class RoundState {
 
 	double previousRaise() {
 		return this.previousRaise;
+	}
+	
+	void setDidRaise(boolean bool) {
+		this.didRaise = bool;
+	}
+	
+	boolean didRaise() {
+		return this.didRaise;
 	}
 
 	boolean didAllPlayersBet() {
