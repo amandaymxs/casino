@@ -4,11 +4,25 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Collections;
+
 @SuppressWarnings("serial")
 public class test {
 
+	static ArrayList<String[]> sevenCard = new ArrayList<String[]>(7);
+
 	public static void main(String[] args) {
-		String[] sevenCard = { "2H", "3D", "4S", "5C", "6S", "7H", "8C" };
+		for (int i = 7; i > 0; i--) {
+			String[] hello = new String[2];
+			hello[0] = String.valueOf(i);
+			hello[1] = "S";
+			sevenCard.add(hello);
+		}
+		
+		sevenCard.sort(Comparator.comparing(a->a[1]));
+
 		final Map<String, Integer> prime = new LinkedHashMap<String, Integer>() {
 			{
 				put("2", 2);
@@ -26,45 +40,27 @@ public class test {
 				put("A", 41);
 			}
 		};
-		Set<String> keys = prime.keySet();
-		ArrayList<String> listKeys = new ArrayList<String>(keys);
-//		for(String key: prime.keySet()) {
-//			System.out.println("Key is: " + key + " and Value is: " + prime.get(key) + ".");
+
+		System.out.println(getHand());
+//		System.out.println(sevenCard.get(0)[0].toString());
+//		System.out.println(Integer.valueOf(sevenCard.get(0)[0].toString()));
+
+//		System.out.println(getHand());
+//		for(String[] array: sevenCard) {
+//			System.out.println(Arrays.toString(array));
 //		}
 
-//		for(int i = 0; i < sevenCard.length; i++) {
-//		System.out.println("Key is: " + prime.get(sevenCard[i].substring(0, 1))+ " and Value is: " + prime.get(sevenCard[i].substring(0, 1)) + ".");
-//		}
-//		
-//		
-//		for ( String index : sevenCard) {
-//		    String key = index.substring(0, 1);
-//		    Integer value = prime.get(index.substring(0, 1));
-//		    System.out.println(value);
-//		    // do something with key and/or tab
-//		}
-		
-		System.out.println("listKeys: " + listKeys.toString());
+//		System.out.println(Arrays.deepToString(sevenCard.toArray()));
 
-		int handTotal = 1;
-		int primeTotal = 0;
-		int firstRank = 0;
-		for (int i = 0; i < 3; i++) {
-			for (int j = 0; j < 5; j++) {
-				handTotal *= prime.get(sevenCard[i + j].substring(0, 1));
-				if (j == 0) {
-					firstRank = prime.get(sevenCard[i + j].substring(0, 1));
-					primeTotal = firstRank;
-					System.out.println("Rank: " + firstRank + " , primeTotal: " + primeTotal);
-				} else {
-					firstRank++;
-					primeTotal *= prime.get(Integer.toString(firstRank));
-					System.out.println("Rank: " + firstRank + " , primeTotal: " + primeTotal);
-				}
-			}
-			System.out.println("handTotal: " + handTotal);
+	}
+
+	public static String getHand() {
+		ArrayList<String[]> copySevenCard = new ArrayList<String[]>(sevenCard.size());
+		for (String[] element : sevenCard) {
+			copySevenCard.add(element);
 		}
-
+//		return copySevenCard.toArray(); //Object[]
+		return Arrays.deepToString(copySevenCard.toArray());
 	}
 
 }

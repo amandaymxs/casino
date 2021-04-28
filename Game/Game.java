@@ -22,7 +22,7 @@ public class Game {
 	ArrayList<Player> p = new ArrayList<Player>(); // Players in the game
 	private ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
 
-	private String[] communityCards = new String[5];
+	private ArrayList<String[]> communityCards = new ArrayList<String[]>(5);
 	private Deck deck;
 
 	private int smallBlindOffset, bigBlindOffset, actingPlayer;
@@ -207,13 +207,17 @@ public class Game {
 		logger.log(getCommunityCards());
 	}
 
-	private void setCommunityCards(int index, String card) {
-		communityCards[index] = card;
+	private void setCommunityCards(int index, String[] card) {
+		communityCards.set(index, card);
 	}
 
 	public String getCommunityCards() {
-		String[] copyCommunityCards = Arrays.copyOf(communityCards, 5);
-		return Arrays.toString(copyCommunityCards);
+		ArrayList<String[]> copyCommunityCards = new ArrayList<String[]>(communityCards.size());
+		for(String[] element : communityCards) {
+			copyCommunityCards.add(element);
+		}
+//		return copySevenCard.toArray(); //Object[]
+		return Arrays.deepToString(copyCommunityCards.toArray());
 	}
 
 	private void playerFold(int player) {
@@ -307,7 +311,7 @@ public class Game {
 	public void resetGame() {
 
 		deck.clearDeck();
-		Arrays.fill(communityCards, null);
+		communityCards.clear();
 		boardCounter = 0; // reset community cards counter to 0
 		g.clearGameCounter(); // game positions ++ clockwise
 		r.clearActCounter();
