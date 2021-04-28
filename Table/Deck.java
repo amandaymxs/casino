@@ -6,13 +6,14 @@ import Casino.Logger;
 
 public class Deck {
 	Logger logger = new Logger(false);
-
+	Card card;
+	
 	private enum suit {
 		S, H, D, C
 	};
 
 	private static String[] rank = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-	private static ArrayList<String[]> deck = new ArrayList<String[]>(52); // deck of cards
+	private static ArrayList<Card> deck = new ArrayList<Card>(52); // deck of cards
 
 	public Deck() {
 		resetDeck();
@@ -25,9 +26,7 @@ public class Deck {
 		}
 		for (int i = 0; i < suit.values().length; i++) {
 			for (int j = 0; j < rank.length; j++) {
-				String[] card = new String[2];
-				card[0] = rank[j];
-				card[1] = suit.values()[i].toString();
+				card = new Card(rank[j], suit.values()[i].toString());
 				deck.add(card);
 			}
 		}
@@ -41,7 +40,7 @@ public class Deck {
 		this.logger.log("Sucess 20002D: Deck has been cleared!");
 	}
 
-	public String[] deal() {
+	public Card deal() {
 //		this.logger.log("Before: " + deck);
 		int card = (int) (Math.random() * deck.size());
 //		this.logger.log("Success 20003D: Card number " + card + " was dealt");

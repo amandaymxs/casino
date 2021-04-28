@@ -1,5 +1,7 @@
 package Casino;
 
+import Table.Card;
+
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -11,18 +13,15 @@ import java.util.Collections;
 @SuppressWarnings("serial")
 public class test {
 
-	static ArrayList<String[]> sevenCard = new ArrayList<String[]>(7);
-
+	static ArrayList<Card> sevenCard = new ArrayList<Card>(7);
+    Card card;
+	
 	public static void main(String[] args) {
 		for (int i = 7; i > 0; i--) {
-			String[] hello = new String[2];
-			hello[0] = String.valueOf(i);
-			hello[1] = "S";
-			sevenCard.add(hello);
+			sevenCard.add(new Card(String.valueOf(i), "S"));
 		}
+		System.out.println(sevenCard.get(0).suit());
 		
-		sevenCard.sort(Comparator.comparing(a->a[1]));
-
 		final Map<String, Integer> prime = new LinkedHashMap<String, Integer>() {
 			{
 				put("2", 2);
@@ -41,7 +40,7 @@ public class test {
 			}
 		};
 
-		System.out.println(getHand());
+//		System.out.println(getHand());
 //		System.out.println(sevenCard.get(0)[0].toString());
 //		System.out.println(Integer.valueOf(sevenCard.get(0)[0].toString()));
 
@@ -54,13 +53,5 @@ public class test {
 
 	}
 
-	public static String getHand() {
-		ArrayList<String[]> copySevenCard = new ArrayList<String[]>(sevenCard.size());
-		for (String[] element : sevenCard) {
-			copySevenCard.add(element);
-		}
-//		return copySevenCard.toArray(); //Object[]
-		return Arrays.deepToString(copySevenCard.toArray());
-	}
 
 }

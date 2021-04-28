@@ -4,24 +4,25 @@ import java.util.Arrays;
 import java.util.ArrayList;
 
 import Casino.Logger;
+import Table.Card;
 
 public class Hand {
 
 	private Logger logger = new Logger(false);
-	private ArrayList<String[]> cards;
+	private ArrayList<Card> cards;
 	private int cardCounter;
 
 	public Hand() {
-		cards = new ArrayList<String[]>(2);
+		cards = new ArrayList<Card>(2);
 		cardCounter = 0;
 	}
 
-	public Hand(String[] card) {
+	public Hand(Card card) {
 		hasTwoCards();
 		addCard(card);
 	}
 
-	public void addCard(String[] card) {
+	public void addCard(Card card) {
 		if (hasTwoCards()) {
 			System.out.println("Error 1001C: Player is already holding two cards.");
 			throw new IllegalArgumentException();
@@ -32,13 +33,13 @@ public class Hand {
 		}
 	}
 
-	public String getHand() {
-		ArrayList<String[]> copyCards = new ArrayList<String[]>(cards.size());
-		for(String[] element : cards) {
+	public ArrayList<Card> getHand() {
+		ArrayList<Card> copyCards = new ArrayList<Card>(cards.size());
+		for(Card element : cards) {
 			copyCards.add(element);
 		}
 //		return copySevenCard.toArray(); //return must be set to Object[]
-		return Arrays.deepToString(copyCards.toArray());
+		return copyCards;
 	}
 
 	public boolean hasTwoCards() {

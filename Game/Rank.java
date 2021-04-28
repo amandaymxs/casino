@@ -8,11 +8,12 @@ import java.util.Map;
 import java.util.Set;
 
 import Casino.Logger;
+import Table.Card;
 
 @SuppressWarnings("serial")
 public class Rank {
 	Logger logger = new Logger(true);
-	ArrayList<String[]> sevenCard = new ArrayList<String[]>(7);
+	ArrayList<Card> sevenCard = new ArrayList<Card>(7);
 	private final Map<String, Integer> prime = new LinkedHashMap<String, Integer>() {
 		{
 			put("2", 2);
@@ -33,26 +34,24 @@ public class Rank {
 	Set<String> keys = prime.keySet();
 	List<String> listKeys = new ArrayList<String>(keys);
 
-	String[] primeSuits = new String[sevenCard.size()];
-
 //	void setCardSuits() {
 //		for (int i = 0; i < sevenCard.size(); i++) {
 //			primeSuits[i] = sevenCard.get(i)[1];
 //		}
 //	}
 
-	Rank(ArrayList<String[]> communityCards) {
+	Rank(ArrayList<Card> communityCards) {
 		setSevenCard(communityCards);
 	}
 
-	void setSevenCard(ArrayList<String[]> cards) {
+	void setSevenCard(ArrayList<Card> cards) {
 		if (sevenCardLength() + cards.size() <= 7) {
 			if (cards.size() == 5) {
 				System.arraycopy(cards, 0, sevenCard, 0, cards.size());
 
 			} else {
 				System.arraycopy(cards, 0, sevenCard, 5, cards.size());
-				Arrays.sort(sevenCard);
+//				Arrays.sort(sevenCard);
 //				setCardSuits();
 			}
 			logger.log("Success! 20001R: sevenCard: " + sevenCard.toString());
@@ -87,10 +86,10 @@ public class Rank {
 		int firstRank = 0;
 		for (int i = 2; i >= 0; i++) { // start from highest to lowest
 			for (int j = 0; j < 5; j++) {
-				handTotal *= prime.get(sevenCard.get(i+j)[0].toString());
+				handTotal *= prime.get(sevenCard.get(i+j).toString());
 				System.out.println("Rank: " + sevenCard.get(i+j).toString() + ", Hand Total: " + handTotal);
 				if (j == 0) {
-					firstRank = prime.get(sevenCard.get(i+j)[0].toString());
+					firstRank = prime.get(sevenCard.get(i+j).toString());
 					primeTotal = firstRank;
 				} else {
 					firstRank++;
@@ -102,14 +101,14 @@ public class Rank {
 				// keep track of i!
 
 				if (isFlush(i)) {
-					if (prime.get(sevenCard.get(i)[0]) == 10) { // royal flush	//IS THIS INT OR STRING? IF STRING CHANGE TO .equals
+					if (prime.get(sevenCard.get(i).rank()) == 10) { // royal flush	//IS THIS INT OR STRING? IF STRING CHANGE TO .equals
 						logger.log("Player has a royal flush");
 						// evaluate suit
 					} else { // straight flush
-						logger.log("Player has a straight flush with high of " + prime.get(sevenCard.get(i+5)[0]));
+						logger.log("Player has a straight flush with high of " + prime.get(sevenCard.get(i+5).rank()));
 					}
 				} else { // straight
-					logger.log("Player has a straight with a high of " + prime.get(sevenCard.get(i+5)[0]));
+					logger.log("Player has a straight with a high of " + prime.get(sevenCard.get(i+5).rank()));
 				}
 
 			}
@@ -120,7 +119,6 @@ public class Rank {
 
 	private boolean isFlush(int startingCard) {
 		boolean sameSuit = true;
-//		
 		for (int i = startingCard; i < startingCard + 5; i++) {
 
 		}

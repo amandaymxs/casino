@@ -9,6 +9,7 @@ import Accounting.Transaction;
 import Casino.Logger;
 import Casino.Player;
 import Table.Deck;
+import Table.Card;
 
 public class Game {
 	private Logger logger = new Logger(true);
@@ -18,11 +19,12 @@ public class Game {
 	public GameState g = new GameState();
 	public RoundState r;
 	Rank rank;
+	Card card;
 
 	ArrayList<Player> p = new ArrayList<Player>(); // Players in the game
 	private ArrayList<Transaction> gameTracking = new ArrayList<Transaction>();
 
-	private ArrayList<String[]> communityCards = new ArrayList<String[]>(5);
+	private ArrayList<Card> communityCards = new ArrayList<Card>(5);
 	private Deck deck;
 
 	private int smallBlindOffset, bigBlindOffset, actingPlayer;
@@ -207,13 +209,13 @@ public class Game {
 		logger.log(getCommunityCards());
 	}
 
-	private void setCommunityCards(int index, String[] card) {
+	private void setCommunityCards(int index, Card card) {
 		communityCards.set(index, card);
 	}
 
 	public String getCommunityCards() {
-		ArrayList<String[]> copyCommunityCards = new ArrayList<String[]>(communityCards.size());
-		for(String[] element : communityCards) {
+		ArrayList<Card> copyCommunityCards = new ArrayList<Card>(communityCards.size());
+		for(Card element : communityCards) {
 			copyCommunityCards.add(element);
 		}
 //		return copySevenCard.toArray(); //Object[]
